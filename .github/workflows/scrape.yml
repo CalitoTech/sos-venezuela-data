@@ -1,0 +1,41 @@
+name: Scrape & ETL
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  scrape-and-load:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: false
+
+      - name: Run Go scrapers
+        run: |
+          for dir in scrapers/*/; do
+            if [ -f "$dir/main.go" ]; then
+              echo "→ $dir"
+              (cd "$dir" && go run main.go)
+            fi
+          done
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: pipeline/requirements.txt
+
+      - name: Install ETL dependencies
+        run: pip install -r pipeline/requirements.txt
+
+      - name: Run ETL
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python pipeline/etl.py

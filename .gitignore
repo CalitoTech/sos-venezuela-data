@@ -1,4 +1,6 @@
 venv/
+.venv/
+scrapers/*/personas.csv
 __pycache__/
 *.py[cod]
 .env

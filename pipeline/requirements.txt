@@ -1,0 +1,4 @@
+duckdb
+psycopg2-binary
+python-dotenv
+rapidfuzz
