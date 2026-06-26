@@ -91,11 +91,14 @@ export default async function Home({
         </div>
 
         {/* Body copy + CTA side by side */}
-        <div className="anim-3 hero-body">
-          <div>
+        <div className="anim-3" style={{
+          display: "flex", flexWrap: "wrap", gap: "2rem", alignItems: "flex-start",
+          paddingLeft: "calc(1.5rem + 3px)", marginBottom: "3rem",
+        }}>
+          <div style={{ flex: "1 1 280px", minWidth: 0 }}>
             <p style={{
               fontFamily: "var(--sans)", fontSize: "1rem", lineHeight: 1.75,
-              color: "#7a7060", maxWidth: 480,
+              color: "#7a7060",
             }}>
               Hay familias que siguen sin dormir esperando una noticia.
               Si perdiste contacto con alguien, repórtalo aquí — cualquier
@@ -104,14 +107,14 @@ export default async function Home({
             </p>
             <p style={{
               fontFamily: "var(--sans)", fontSize: "0.82rem", lineHeight: 1.65,
-              color: "#4a4438", marginTop: "1rem", maxWidth: 480,
+              color: "#4a4438", marginTop: "1rem",
             }}>
               Plataforma ciudadana y sin fines de lucro. No solicitamos dinero.
               Los datos publicados son responsabilidad de quien los reporta.
             </p>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", paddingTop: "0.25rem" }}>
+          <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", gap: "0.75rem", paddingTop: "0.25rem" }}>
             <Link href="/agregar" style={{
               display: "block", textAlign: "center",
               background: "var(--red)", color: "#fff",
@@ -134,14 +137,23 @@ export default async function Home({
         borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)",
         background: "#0e0e0e",
       }}>
-        <div className="stats-bar" style={{ maxWidth: 1100, margin: "0 auto", padding: "0 1.5rem" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 1.5rem", display: "flex", flexWrap: "wrap" }}>
           {[
             { label: "PERSONAS REPORTADAS", value: stats?.total   ?? 0, color: "#f5f0e8" },
             { label: "AÚN SIN CONTACTO",    value: stats?.missing ?? 0, color: "var(--red)" },
             { label: "LOCALIZADAS",          value: stats?.found  ?? 0, color: "var(--green)" },
           ].map((s) => (
-            <div key={s.label} className="stats-cell">
-              <span className="stats-num" style={{ color: s.color }}>
+            <div key={s.label} style={{
+              flex: "1 1 120px",
+              display: "flex", alignItems: "baseline", gap: "0.75rem",
+              padding: "1.1rem 1rem",
+              borderRight: "1px solid var(--border)",
+            }}>
+              <span style={{
+                fontFamily: "var(--display)",
+                fontSize: "clamp(1.6rem, 6vw, 2.6rem)",
+                fontWeight: 700, lineHeight: 1, color: s.color,
+              }}>
                 {s.value.toLocaleString("es-VE")}
               </span>
               <span style={{ fontFamily: "var(--mono)", fontSize: "0.57rem", color: "var(--text-faint)", letterSpacing: "0.12em" }}>

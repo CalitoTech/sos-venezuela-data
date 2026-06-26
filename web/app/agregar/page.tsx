@@ -60,16 +60,16 @@ export default function AgregarPage() {
           borderTop: "2px solid var(--red)", borderRadius: 4, padding: "2rem",
         }}>
           <form onSubmit={handleSubmit}>
-            <div className="form-grid">
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "2rem", alignItems: "flex-start" }}>
 
               {/* Columna izquierda: foto */}
-              <div>
+              <div style={{ flex: "0 0 180px" }}>
                 <p style={labelStyle}>FOTO</p>
                 <PhotoUpload onUpload={setPhotoUrl} />
               </div>
- 
+
               {/* Columna derecha: campos */}
-              <div className="field-grid">
+              <div style={{ flex: "1 1 280px", minWidth: 0, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
 
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={labelStyle}>NOMBRE COMPLETO *</label>
