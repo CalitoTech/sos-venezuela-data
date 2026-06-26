@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { pool } from "@/lib/db";
 
-// CORS headers — API pública
 const CORS = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -66,8 +65,17 @@ export async function GET(req: NextRequest) {
 
 // ---------------------------------------------------------------
 // POST /api/persons
-// Body JSON — campos requeridos: full_name
-// Deduplicación: cédula (si existe) o (full_name + date_of_birth)
+//
+// Campos requeridos: full_name
+// Deduplicación: cedula > (full_name + date_of_birth)
+//
+// Campos de trazabilidad de fuente (opcionales):
+//   source_name       — nombre de la fuente (se crea si no existe)
+//   source_url        — URL base de la fuente
+//   source_type       — html | api | form | social | manual
+//   source_record_id  — ID del registro en la fuente original
+//   source_record_url — URL exacta del registro en la fuente
+//   raw_data          — payload original (objeto JSON)
 // ---------------------------------------------------------------
 export async function POST(req: NextRequest) {
   let body: Record<string, unknown>;
@@ -93,14 +101,24 @@ export async function POST(req: NextRequest) {
   const contact_phone      = str(body.contact_phone);
   const contact_email      = str(body.contact_email);
   const photo_url          = str(body.photo_url);
-  const reported_by_source = str(body.reported_by_source) ?? "api";
   const source_urls        = Array.isArray(body.source_urls)
     ? (body.source_urls as string[]).filter(s => typeof s === "string")
     : null;
 
+  // Campos de fuente
+  const source_name       = str(body.source_name) ?? str(body.reported_by_source) ?? "api";
+  const source_base_url   = str(body.source_url) ?? "https://unknown";
+  const source_type       = oneOf(body.source_type, ["html","api","form","social","manual"]) ?? "api";
+  const source_record_id  = str(body.source_record_id);
+  const source_record_url = str(body.source_record_url);
+  const raw_data          = body.raw_data && typeof body.raw_data === "object" ? body.raw_data : null;
+
   const client = await pool.connect();
   try {
-    const res = await client.query(
+    await client.query("BEGIN");
+
+    // 1. Upsert persona
+    const personRes = await client.query(
       `INSERT INTO missing_persons
          (full_name, cedula, date_of_birth, age, gender,
           last_seen_location, last_seen_date, description,
@@ -116,25 +134,52 @@ export async function POST(req: NextRequest) {
          photo_url           = COALESCE(EXCLUDED.photo_url,          missing_persons.photo_url),
          source_urls         = CASE
                                  WHEN EXCLUDED.source_urls IS NOT NULL
-                                 THEN (
-                                   SELECT ARRAY(
-                                     SELECT DISTINCT unnest(
-                                       COALESCE(missing_persons.source_urls, '{}') || EXCLUDED.source_urls
-                                     )
-                                   )
-                                 )
+                                 THEN (SELECT ARRAY(SELECT DISTINCT unnest(
+                                         COALESCE(missing_persons.source_urls, '{}') || EXCLUDED.source_urls)))
                                  ELSE missing_persons.source_urls
                                END,
          updated_at          = NOW()
-       RETURNING *`,
+       RETURNING id`,
       [full_name, cedula, date_of_birth, age, gender,
        last_seen_location, last_seen_date, description,
        contact_name, contact_phone, contact_email,
-       photo_url, reported_by_source, source_urls]
+       photo_url, source_name, source_urls]
     );
+    const person_id = personRes.rows[0].id;
 
-    return NextResponse.json(res.rows[0], { status: 201, headers: CORS });
+    // 2. Upsert fuente
+    const sourceRes = await client.query(
+      `INSERT INTO sources (name, url, type)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (name) DO UPDATE SET url = EXCLUDED.url
+       RETURNING id`,
+      [source_name, source_base_url, source_type]
+    );
+    const source_id = sourceRes.rows[0].id;
+
+    // 3. Registrar relación persona <-> fuente (si hay source_record_id)
+    if (source_record_id) {
+      await client.query(
+        `INSERT INTO person_sources (person_id, source_id, source_record_id, source_url, raw_data)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (source_id, source_record_id)
+         DO UPDATE SET
+           person_id  = EXCLUDED.person_id,
+           source_url = COALESCE(EXCLUDED.source_url, person_sources.source_url),
+           raw_data   = COALESCE(EXCLUDED.raw_data,   person_sources.raw_data),
+           scraped_at = NOW()`,
+        [person_id, source_id, source_record_id, source_record_url, raw_data ? JSON.stringify(raw_data) : null]
+      );
+    }
+
+    await client.query("COMMIT");
+
+    // Devolver registro completo
+    const final = await client.query(`SELECT * FROM missing_persons WHERE id = $1`, [person_id]);
+    return NextResponse.json(final.rows[0], { status: 201, headers: CORS });
+
   } catch (err: unknown) {
+    await client.query("ROLLBACK");
     const msg = err instanceof Error ? err.message : "Error interno";
     return NextResponse.json({ error: msg }, { status: 500, headers: CORS });
   } finally {
@@ -142,7 +187,6 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// helpers
 function str(v: unknown): string | null {
   const s = typeof v === "string" ? v.trim() : null;
   return s || null;
