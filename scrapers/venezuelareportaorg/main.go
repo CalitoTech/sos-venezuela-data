@@ -6,7 +6,9 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -125,7 +127,8 @@ func main() {
 	}
 	fmt.Printf("Total de páginas: %d\n", totalPages)
 
-	f, err := os.Create(outputFile)
+	_, src, _, _ := runtime.Caller(0)
+	f, err := os.Create(filepath.Join(filepath.Dir(src), outputFile))
 	if err != nil {
 		log.Fatal(err)
 	}
