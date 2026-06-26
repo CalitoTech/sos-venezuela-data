@@ -7,7 +7,7 @@ import { SearchBar } from "@/components/SearchBar";
 export const dynamic = "force-dynamic";
 
 const PHONES = [
-  { number: "171",  label: "CANTV fijo" },
+  { number: "171",  label: "CANTV" },
   { number: "*1",   label: "Movilnet" },
   { number: "112",  label: "Digitel" },
   { number: "911",  label: "Movistar" },
@@ -24,7 +24,7 @@ export default async function Home({
   return (
     <main style={{ minHeight: "100vh", padding: "0 0 5rem" }}>
 
-      {/* ── HEADER ───────────────────────────────────────────── */}
+      {/* ── HEADER ── */}
       <header style={{
         borderBottom: "1px solid var(--border)",
         background: "#0a0a0a",
@@ -36,151 +36,169 @@ export default async function Home({
             <span style={{ fontFamily: "var(--mono)", fontSize: "0.8rem", fontWeight: 600, letterSpacing: "0.12em", color: "var(--text)" }}>
               SOS VENEZUELA
             </span>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.06em", borderLeft: "1px solid var(--border)", paddingLeft: "0.75rem", marginLeft: "0.1rem" }}>
+            <span style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.06em", borderLeft: "1px solid var(--border)", paddingLeft: "0.75rem" }}>
               DESAPARECIDOS
             </span>
           </div>
-          <Link
-            href="/agregar"
-            style={{
-              fontFamily: "var(--mono)", fontSize: "0.72rem", fontWeight: 600,
-              background: "var(--red)", color: "#fff",
-              padding: "0.45rem 1rem", borderRadius: 2,
-              textDecoration: "none", letterSpacing: "0.08em",
-              display: "flex", alignItems: "center", gap: 6,
-            }}
-          >
+          <Link href="/agregar" style={{
+            fontFamily: "var(--mono)", fontSize: "0.72rem", fontWeight: 600,
+            background: "var(--red)", color: "#fff",
+            padding: "0.45rem 1rem", borderRadius: 2,
+            textDecoration: "none", letterSpacing: "0.08em",
+          }}>
             + REPORTAR
           </Link>
         </div>
       </header>
 
-      {/* ── HERO ─────────────────────────────────────────────── */}
+      {/* ── HERO ── */}
       <section style={{
-        maxWidth: 1100, margin: "0 auto", padding: "3.5rem 1.5rem 0",
-        display: "grid", gridTemplateColumns: "1fr auto", gap: "2rem", alignItems: "start",
+        maxWidth: 1100, margin: "0 auto", padding: "4rem 1.5rem 0",
+        borderLeft: "none",
       }}>
-        {/* Left: headline + description */}
-        <div>
-          <p className="anim-1" style={{
-            fontFamily: "var(--mono)", fontSize: "0.65rem", fontWeight: 600,
-            color: "var(--red)", letterSpacing: "0.18em", textTransform: "uppercase",
-            display: "flex", alignItems: "center", gap: 8, marginBottom: "1rem",
-          }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--red)", display: "inline-block", animation: "pulse-red 1.4s ease-in-out infinite" }} />
-            EMERGENCIA · SISMO DE JUNIO 2026
-          </p>
+        {/* Eyebrow */}
+        <p className="anim-1" style={{
+          fontFamily: "var(--mono)", fontSize: "0.62rem", fontWeight: 600,
+          color: "var(--red)", letterSpacing: "0.2em", textTransform: "uppercase",
+          display: "flex", alignItems: "center", gap: 8, marginBottom: "1.25rem",
+        }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--red)", display: "inline-block", animation: "pulse-red 1.4s ease-in-out infinite" }} />
+          EMERGENCIA — SISMO DE JUNIO 2026
+        </p>
 
-          <h1 className="anim-2" style={{
+        {/* Headline with red left border */}
+        <div className="anim-2" style={{
+          borderLeft: "3px solid var(--red)", paddingLeft: "1.5rem",
+          marginBottom: "2rem",
+        }}>
+          <h1 style={{
             fontFamily: "var(--display)",
-            fontSize: "clamp(2.6rem, 6vw, 4.5rem)",
-            fontWeight: 900,
-            lineHeight: 1.05,
-            color: "#f0ece4",
-            marginBottom: "1.25rem",
-            letterSpacing: "-0.01em",
+            fontSize: "clamp(3rem, 7vw, 5.5rem)",
+            fontWeight: 700,
+            lineHeight: 1.0,
+            color: "#f5f0e8",
+            letterSpacing: "-0.02em",
+            fontStyle: "italic",
           }}>
-            Reconectemos<br />
-            a cada familia.
+            Cada nombre<br />
+            <span style={{ fontStyle: "normal", color: "#c8c0b0" }}>importa.</span>
           </h1>
+        </div>
 
-          <p className="anim-3" style={{
-            fontFamily: "var(--sans)", fontSize: "1rem", lineHeight: 1.7,
-            color: "#a0998e", maxWidth: 520, marginBottom: "2rem",
-          }}>
-            Tras el terremoto, muchas familias siguen sin saber de los suyos.
-            Si no logras comunicarte con alguien, repórtalo aquí. Y si ya lo
-            encontraste, avísanos — para que su nombre dé tranquilidad, no angustia.
-          </p>
+        {/* Body copy + CTA side by side */}
+        <div className="anim-3" style={{
+          display: "grid", gridTemplateColumns: "1fr auto", gap: "3rem", alignItems: "start",
+          paddingLeft: "calc(1.5rem + 3px)",
+          marginBottom: "3rem",
+        }}>
+          <div>
+            <p style={{
+              fontFamily: "var(--sans)", fontSize: "1rem", lineHeight: 1.75,
+              color: "#7a7060", maxWidth: 480,
+            }}>
+              Hay familias que siguen sin dormir esperando una noticia.
+              Si perdiste contacto con alguien, repórtalo aquí — cualquier
+              dato ayuda. Si ya apareció, también avísanos, para que su
+              nombre deje de estar en esta lista.
+            </p>
+            <p style={{
+              fontFamily: "var(--sans)", fontSize: "0.82rem", lineHeight: 1.65,
+              color: "#4a4438", marginTop: "1rem", maxWidth: 480,
+            }}>
+              Plataforma ciudadana y sin fines de lucro. No solicitamos dinero.
+              Los datos publicados son responsabilidad de quien los reporta.
+            </p>
+          </div>
 
-          <div className="anim-3" style={{ display: "flex", flexDirection: "column", gap: "0.5rem", marginBottom: "0.75rem" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", paddingTop: "0.25rem" }}>
             <Link href="/agregar" style={{
-              display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 10,
+              display: "block", textAlign: "center",
               background: "var(--red)", color: "#fff",
-              fontFamily: "var(--sans)", fontSize: "1rem", fontWeight: 700,
-              padding: "0.95rem 2rem", borderRadius: 4,
-              textDecoration: "none", letterSpacing: "0.02em",
-              width: "fit-content", transition: "background 0.15s",
+              fontFamily: "var(--sans)", fontSize: "0.9rem", fontWeight: 700,
+              padding: "1rem 1.75rem", borderRadius: 3,
+              textDecoration: "none", letterSpacing: "0.01em",
+              whiteSpace: "nowrap",
             }}>
               + Reportar a alguien
             </Link>
-            <span style={{ fontFamily: "var(--sans)", fontSize: "0.78rem", color: "var(--text-faint)" }}>
-              Es gratis y toma menos de un minuto. Solo necesitas su nombre y dónde se le vio por última vez.
-            </span>
+            <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", textAlign: "center", letterSpacing: "0.05em" }}>
+              GRATIS · MENOS DE 1 MINUTO
+            </p>
           </div>
         </div>
+      </section>
 
-        {/* Right: stats */}
-        <div className="anim-4" style={{
-          display: "flex", flexDirection: "column", gap: "0.6rem",
-          paddingTop: "0.5rem", minWidth: 160,
+      {/* ── STATS BAR ── tipo periódico, horizontal */}
+      <div className="anim-3" style={{
+        borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)",
+        background: "#0e0e0e",
+      }}>
+        <div style={{
+          maxWidth: 1100, margin: "0 auto", padding: "0 1.5rem",
+          display: "flex", alignItems: "stretch",
         }}>
           {[
-            { label: "PERSONAS REPORTADAS", value: stats?.total   ?? 0, color: "#f0ece4" },
+            { label: "PERSONAS REPORTADAS", value: stats?.total   ?? 0, color: "#f5f0e8" },
             { label: "AÚN SIN CONTACTO",    value: stats?.missing ?? 0, color: "var(--red)" },
-            { label: "LOCALIZADOS",          value: stats?.found  ?? 0, color: "var(--green)" },
-          ].map(s => (
+            { label: "LOCALIZADAS",          value: stats?.found  ?? 0, color: "var(--green)" },
+          ].map((s, i) => (
             <div key={s.label} style={{
-              background: "var(--bg-card)", border: "1px solid var(--border)",
-              borderRadius: 4, padding: "0.75rem 1.1rem",
+              flex: 1,
+              padding: "1.25rem 1.5rem",
+              borderRight: i < 2 ? "1px solid var(--border)" : "none",
+              display: "flex", alignItems: "baseline", gap: "0.75rem",
             }}>
-              <p style={{ fontFamily: "var(--display)", fontSize: "2.2rem", color: s.color, lineHeight: 1, marginBottom: 3 }}>
+              <span style={{ fontFamily: "var(--display)", fontSize: "2.6rem", fontWeight: 700, color: s.color, lineHeight: 1 }}>
                 {s.value.toLocaleString("es-VE")}
-              </p>
-              <p style={{ fontFamily: "var(--mono)", fontSize: "0.58rem", color: "var(--text-faint)", letterSpacing: "0.1em" }}>
+              </span>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "0.57rem", color: "var(--text-faint)", letterSpacing: "0.12em" }}>
                 {s.label}
-              </p>
+              </span>
             </div>
           ))}
         </div>
-      </section>
+      </div>
 
-      {/* ── EMERGENCY PHONES ─────────────────────────────────── */}
-      <section className="anim-4" style={{
-        maxWidth: 1100, margin: "2.5rem auto 0", padding: "0 1.5rem",
+      {/* ── EMERGENCY PHONES ── franja roja oscura */}
+      <div className="anim-4" style={{
+        background: "#1a0505", borderBottom: "1px solid #3a1010",
       }}>
         <div style={{
-          border: "1px solid var(--border)", borderRadius: 6,
-          padding: "1.25rem 1.5rem",
-          background: "linear-gradient(135deg, #111 0%, #0e0e0e 100%)",
+          maxWidth: 1100, margin: "0 auto", padding: "1rem 1.5rem",
+          display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap",
         }}>
-          <p style={{
-            fontFamily: "var(--mono)", fontSize: "0.6rem", fontWeight: 600,
-            color: "var(--amber)", letterSpacing: "0.18em", textTransform: "uppercase",
-            marginBottom: "1rem", display: "flex", alignItems: "center", gap: 7,
+          <span style={{
+            fontFamily: "var(--mono)", fontSize: "0.58rem", fontWeight: 600,
+            color: "#cc6060", letterSpacing: "0.16em", whiteSpace: "nowrap",
+            display: "flex", alignItems: "center", gap: 6,
           }}>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.71 3.53 2 2 0 0 1 3.68 1.36h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
             </svg>
-            TELÉFONOS DE EMERGENCIA · VENEZUELA
-          </p>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(140px, 1fr))",
-            gap: "0.6rem",
-          }}>
-            {PHONES.map(p => (
-              <a key={p.number} href={`tel:${p.number}`} style={{
-                background: "#181818", border: "1px solid var(--border)",
-                borderRadius: 4, padding: "0.75rem 1rem",
-                textDecoration: "none", display: "block",
-                transition: "border-color 0.15s",
-              }}>
-                <p style={{ fontFamily: "var(--display)", fontSize: "1.7rem", color: "#f0ece4", lineHeight: 1, marginBottom: 3 }}>
-                  {p.number}
-                </p>
-                <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.06em" }}>
-                  {p.label}
-                </p>
-              </a>
-            ))}
-          </div>
+            EMERGENCIAS
+          </span>
+          <div style={{ width: 1, height: 20, background: "#3a1010" }} />
+          {PHONES.map((p, i) => (
+            <a key={p.number} href={`tel:${p.number}`} style={{
+              display: "flex", alignItems: "baseline", gap: 5,
+              textDecoration: "none",
+            }}>
+              <span style={{ fontFamily: "var(--display)", fontSize: "1.5rem", fontWeight: 700, color: "#e8a0a0", lineHeight: 1 }}>
+                {p.number}
+              </span>
+              <span style={{ fontFamily: "var(--mono)", fontSize: "0.58rem", color: "#7a4040", letterSpacing: "0.06em" }}>
+                {p.label}
+              </span>
+              {i < PHONES.length - 1 && (
+                <span style={{ color: "#3a1010", marginLeft: 8, fontFamily: "var(--mono)", fontSize: "0.7rem" }}>·</span>
+              )}
+            </a>
+          ))}
         </div>
-      </section>
+      </div>
 
-      {/* ── SEARCH + GRID ─────────────────────────────────────── */}
+      {/* ── SEARCH + GRID ── */}
       <div style={{ maxWidth: 1100, margin: "2.5rem auto 0", padding: "0 1.5rem" }}>
-
         <div style={{ marginBottom: "1.5rem" }}>
           <Suspense fallback={null}>
             <SearchBar />
@@ -210,37 +228,20 @@ export default async function Home({
         )}
       </div>
 
-      {/* ── DISCLAIMER ───────────────────────────────────────── */}
+      {/* ── FOOTER ── */}
       <footer style={{
-        maxWidth: 1100, margin: "4rem auto 0", padding: "0 1.5rem",
-        borderTop: "1px solid var(--border)", paddingTop: "2rem",
+        maxWidth: 1100, margin: "4rem auto 0", padding: "2rem 1.5rem 0",
+        borderTop: "1px solid var(--border)",
+        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+        flexWrap: "wrap", gap: "1.5rem",
       }}>
-        <div style={{
-          display: "grid", gridTemplateColumns: "1fr 1fr", gap: "2rem",
-        }}>
-          <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", fontWeight: 600, color: "var(--text-faint)", letterSpacing: "0.14em", marginBottom: "0.6rem" }}>
-              SOBRE ESTA PLATAFORMA
-            </p>
-            <p style={{ fontFamily: "var(--sans)", fontSize: "0.82rem", lineHeight: 1.65, color: "#666" }}>
-              Iniciativa ciudadana, voluntaria y sin fines de lucro para ayudar a localizar a las personas
-              desaparecidas tras el terremoto de 2026. No solicitamos ni gestionamos dinero, donaciones
-              ni ayudas de ningún tipo.
-            </p>
-          </div>
-          <div>
-            <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", fontWeight: 600, color: "var(--text-faint)", letterSpacing: "0.14em", marginBottom: "0.6rem" }}>
-              AVISO LEGAL
-            </p>
-            <p style={{ fontFamily: "var(--sans)", fontSize: "0.82rem", lineHeight: 1.65, color: "#666" }}>
-              No vendemos ni compartimos tu información con terceros. Los datos publicados son
-              responsabilidad de quien los envía — verifica siempre antes de difundir. Ante una
-              emergencia activa, llama a los organismos de rescate.
-            </p>
-          </div>
-        </div>
-        <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.08em", marginTop: "1.5rem", paddingBottom: "1rem" }}>
-          © 2026 SOS VENEZUELA · HECHO POR VENEZOLANOS
+        <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.08em", lineHeight: 1.8 }}>
+          © 2026 SOS VENEZUELA<br />
+          HECHO POR VENEZOLANOS, PARA VENEZOLANOS
+        </p>
+        <p style={{ fontFamily: "var(--sans)", fontSize: "0.78rem", color: "#4a4438", lineHeight: 1.65, maxWidth: 420, textAlign: "right" }}>
+          Ante una emergencia activa, llama a los organismos de rescate.
+          Esta herramienta es ciudadana y no partidista.
         </p>
       </footer>
 
