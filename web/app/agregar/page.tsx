@@ -74,8 +74,6 @@ export default function AgregarPage() {
                   <option value="">— seleccionar —</option>
                   <option value="male">Masculino</option>
                   <option value="female">Femenino</option>
-                  <option value="other">Otro</option>
-                  <option value="unknown">Desconocido</option>
                 </select>
               </div>
 

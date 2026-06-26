@@ -47,10 +47,9 @@ export async function getStats() {
   try {
     const res = await client.query(
       `SELECT
-        COUNT(*) FILTER (WHERE status = 'missing')   AS missing,
-        COUNT(*) FILTER (WHERE status = 'found')     AS found,
-        COUNT(*) FILTER (WHERE status = 'deceased')  AS deceased,
-        COUNT(*)                                      AS total
+        COUNT(*) FILTER (WHERE status = 'missing') AS missing,
+        COUNT(*) FILTER (WHERE status = 'found')   AS found,
+        COUNT(*)                                    AS total
        FROM missing_persons`
     );
     return res.rows[0];

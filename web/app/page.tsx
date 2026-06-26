@@ -50,10 +50,9 @@ export default async function Home({
         {/* Stats */}
         <div style={{ display: "flex", gap: "1rem", marginBottom: "2rem", flexWrap: "wrap" }}>
           {[
-            { label: "BUSCADOS",    value: stats?.missing  ?? 0, color: "var(--red)"      },
-            { label: "ENCONTRADOS", value: stats?.found    ?? 0, color: "var(--green)"    },
-            { label: "FALLECIDOS",  value: stats?.deceased ?? 0, color: "#555"            },
-            { label: "TOTAL",       value: stats?.total    ?? 0, color: "var(--text-dim)" },
+            { label: "NO LOCALIZADOS", value: stats?.missing ?? 0, color: "var(--red)"      },
+            { label: "LOCALIZADOS",    value: stats?.found   ?? 0, color: "var(--green)"    },
+            { label: "TOTAL",          value: stats?.total   ?? 0, color: "var(--text-dim)" },
           ].map(s => (
             <div key={s.label} style={{
               background: "var(--bg-card)", border: "1px solid var(--border)",

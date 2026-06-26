@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPersonById, updateStatus } from "@/lib/actions";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PhotoZoom } from "@/components/PhotoZoom";
 
 export const dynamic = "force-dynamic";
 
@@ -55,11 +56,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           {/* Columna 1: foto + estado */}
           <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {person.photo_url ? (
-              <img
-                src={person.photo_url}
-                alt={person.full_name}
-                style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", borderRadius: 3, filter: "grayscale(15%)" }}
-              />
+              <PhotoZoom src={person.photo_url} alt={person.full_name} />
             ) : (
               <div style={{
                 width: "100%", aspectRatio: "3/4", borderRadius: 3,
@@ -145,10 +142,8 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
                     fontSize: "0.82rem", padding: "0.55rem 0.8rem",
                   }}
                 >
-                  <option value="missing">Buscado</option>
-                  <option value="found">Encontrado</option>
-                  <option value="deceased">Fallecido</option>
-                  <option value="unknown">Desconocido</option>
+                  <option value="missing">No localizado</option>
+                  <option value="found">Localizado</option>
                 </select>
                 <textarea
                   name="status_notes"

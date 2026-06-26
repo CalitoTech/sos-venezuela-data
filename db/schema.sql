@@ -22,7 +22,7 @@ CREATE TABLE IF NOT EXISTS missing_persons (
     cedula              VARCHAR(20) UNIQUE,                     -- clave natural si existe
     date_of_birth       DATE,
     age                 SMALLINT CHECK (age BETWEEN 0 AND 130),
-    gender              VARCHAR(20) CHECK (gender IN ('male', 'female', 'other', 'unknown')),
+    gender              VARCHAR(20) CHECK (gender IN ('male', 'female')),
     nationality         VARCHAR(100) DEFAULT 'Venezolana',
 
     -- Último avistamiento
@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS missing_persons (
 
     -- Estado
     status              VARCHAR(20) NOT NULL DEFAULT 'missing'
-                            CHECK (status IN ('missing', 'found', 'deceased', 'unknown')),
+                            CHECK (status IN ('missing', 'found')),
     status_notes        TEXT,                                   -- cómo fue encontrado, etc.
 
     -- Trazabilidad

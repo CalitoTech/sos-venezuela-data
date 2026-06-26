@@ -23,7 +23,7 @@ export interface MissingPerson {
   contact_phone: string | null;
   contact_email: string | null;
   photo_url: string | null;
-  status: "missing" | "found" | "deceased" | "unknown";
+  status: "missing" | "found";
   status_notes: string | null;
   reported_by_source: string | null;
   source_urls: string[] | null;

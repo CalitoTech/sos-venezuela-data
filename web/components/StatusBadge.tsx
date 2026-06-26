@@ -1,10 +1,8 @@
-export type Status = "missing" | "found" | "deceased" | "unknown";
+export type Status = "missing" | "found";
 
 const config: Record<Status, { label: string; color: string; pulse: boolean }> = {
-  missing:  { label: "BUSCADO",     color: "#cc1111", pulse: true  },
-  found:    { label: "ENCONTRADO",  color: "#22a05a", pulse: false },
-  deceased: { label: "FALLECIDO",   color: "#555555", pulse: false },
-  unknown:  { label: "DESCONOCIDO", color: "#666666", pulse: false },
+  missing: { label: "NO LOCALIZADO", color: "#cc1111", pulse: true  },
+  found:   { label: "LOCALIZADO",    color: "#22a05a", pulse: false },
 };
 
 export function StatusBadge({ status }: { status: Status }) {
