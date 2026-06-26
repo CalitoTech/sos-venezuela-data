@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { MissingPerson } from "@/lib/db";
 import { StatusBadge } from "./StatusBadge";

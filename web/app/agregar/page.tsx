@@ -122,11 +122,6 @@ export default function AgregarPage() {
                 <input name="contact_email" type="email" placeholder="correo@ejemplo.com" style={field.input} />
               </div>
 
-              <div style={{ gridColumn: "1 / -1" }}>
-                <label style={field.label("")}>URL DE FOTO (opcional)</label>
-                <input name="photo_url" type="url" placeholder="https://..." style={field.input} />
-              </div>
-
               {/* Submit */}
               <div style={{ gridColumn: "1 / -1", marginTop: "0.5rem" }}>
                 <button
