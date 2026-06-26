@@ -1,0 +1,13 @@
+# Fuentes de datos de desaparecidos
+# Formato por fuente:
+#   name: nombre legible
+#   url: URL base
+#   type: html | api | form
+#   notes: notas sobre la fuente
+
+sources: []
+  # Ejemplo:
+  # - name: "Nombre del sitio"
+  #   url: "https://ejemplo.com/desaparecidos"
+  #   type: html
+  #   notes: "Tabla paginada, actualiza cada 6h"
