@@ -81,6 +81,12 @@ func main() {
 	start := time.Now()
 	client := newClient()
 
+	items0, total, err := fetch(client, 0)
+	if err != nil {
+		log.Fatalf("Error en offset=0: %v", err)
+	}
+	fmt.Printf("Total: %d pacientes\n", total)
+
 	_, src, _, _ := runtime.Caller(0)
 	f, err := os.Create(filepath.Join(filepath.Dir(src), outputFile))
 	if err != nil {
@@ -98,14 +104,15 @@ func main() {
 
 	var written int
 	for offset := 0; ; offset += pageSize {
-		items, total, err := fetch(client, offset)
-		if err != nil {
-			log.Fatalf("Error en offset=%d: %v", offset, err)
-		}
+		var items []Person
 		if offset == 0 {
-			fmt.Printf("Total: %d pacientes\n", total)
+			items = items0
+		} else {
+			items, _, err = fetch(client, offset)
+			if err != nil {
+				log.Fatalf("Error en offset=%d: %v", offset, err)
+			}
 		}
-
 		for _, p := range items {
 			hospital, city, state := "", "", ""
 			if p.Hospital != nil {
