@@ -70,8 +70,8 @@ export async function createPerson(formData: FormData) {
         (full_name, cedula, date_of_birth, age, gender,
          last_seen_location, last_seen_date, description,
          contact_name, contact_phone, contact_email,
-         photo_url, reported_by_source)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)
+         photo_url, reported_by_source, data_as_of)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13, NOW())
        ON CONFLICT (cedula) WHERE cedula IS NOT NULL
        DO UPDATE SET
          full_name           = EXCLUDED.full_name,
@@ -82,6 +82,7 @@ export async function createPerson(formData: FormData) {
          contact_phone       = EXCLUDED.contact_phone,
          contact_email       = EXCLUDED.contact_email,
          photo_url           = EXCLUDED.photo_url,
+         data_as_of          = NOW(),
          updated_at          = NOW()
        RETURNING id`,
       [
@@ -123,7 +124,8 @@ export async function updateStatus(
   try {
     await client.query(
       `UPDATE missing_persons
-       SET status = $1, status_notes = $2, found_by = $3, found_contact = $4, found_hospital = $5
+       SET status = $1, status_notes = $2, found_by = $3, found_contact = $4, found_hospital = $5,
+           data_as_of = NOW()
        WHERE id = $6`,
       [status, notes, found_by || null, found_contact || null, found_hospital || null, id]
     );

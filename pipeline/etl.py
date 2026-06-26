@@ -54,7 +54,8 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
             NULL::VARCHAR                                                   AS source_url,
             NULLIF(TRIM(localizado_por), '')                                AS found_by,
             NULLIF(TRIM(localizado_contacto), '')                           AS found_contact,
-            NULL::VARCHAR                                                   AS found_hospital
+            NULL::VARCHAR                                                   AS found_hospital,
+            NULL::TIMESTAMPTZ                                               AS data_as_of
         FROM read_csv_auto('{SCRAPERS}/ayudavenezuela/personas.csv')""")
 
     if _csv(f"{SCRAPERS}/desaparecidosapi/personas.csv"):
@@ -79,7 +80,8 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
             'desaparecidosapi', id, NULL,
             NULLIF(TRIM(localizado_por), ''),
             NULLIF(TRIM(localizado_contacto), ''),
-            NULL
+            NULL,
+            epoch_ms(TRY_CAST(updated_at AS BIGINT)) AT TIME ZONE 'UTC'  -- ms epoch -> TIMESTAMPTZ
         FROM read_csv_auto('{SCRAPERS}/desaparecidosapi/personas.csv')""")
 
     if _csv(f"{SCRAPERS}/encuentralos/personas.csv"):
@@ -107,7 +109,8 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
             'encuentralos', id, NULL,
             NULLIF(TRIM(pv_por), ''),
             NULLIF(TRIM(pv_contacto), ''),
-            NULLIF(TRIM(pv_lugar), '')
+            NULLIF(TRIM(pv_lugar), ''),
+            NULL::TIMESTAMPTZ
         FROM read_csv_auto('{SCRAPERS}/encuentralos/personas.csv')""")
 
     if _csv(f"{SCRAPERS}/venezuelareportaorg/personas.csv"):
@@ -130,7 +133,8 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
                 ELSE 'missing'
             END,
             'venezuelareportaorg', id, url,
-            NULL, NULL, NULL
+            NULL, NULL, NULL,
+            NULL::TIMESTAMPTZ
         FROM read_csv_auto('{SCRAPERS}/venezuelareportaorg/personas.csv')""")
 
     if _csv(f"{SCRAPERS}/venezuelatebusca/personas.csv"):
@@ -158,8 +162,12 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
             'venezuelatebusca', id, NULL,
             NULLIF(found_notes, ''),
             NULL,
-            NULLIF(hospital_name, '')
-        FROM read_csv_auto('{SCRAPERS}/venezuelatebusca/personas.csv')""")
+            NULLIF(hospital_name, ''),
+            TRY_CAST(updated_at AS TIMESTAMPTZ)  -- ISO 8601 -> TIMESTAMPTZ
+        FROM read_csv_auto('{SCRAPERS}/venezuelatebusca/personas.csv')
+        -- Excluir registros que la fuente ocultó o borró (no re-publicar bajas)
+        WHERE NULLIF(TRIM(CAST(hidden_at  AS VARCHAR)), '') IS NULL
+          AND NULLIF(TRIM(CAST(deleted_at AS VARCHAR)), '') IS NULL""")
 
     if _csv(f"{SCRAPERS}/pacienteshospitales/pacientes.csv"):
         parts.append(f"""
@@ -179,7 +187,15 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
             'pacienteshospitales', id, NULL,
             NULLIF(TRIM(reportado_por), ''),
             NULL,
-            NULLIF(TRIM(CONCAT_WS(', ', NULLIF(hospital,''), NULLIF(ciudad,''))), '')
+            NULLIF(TRIM(CONCAT_WS(', ', NULLIF(hospital,''), NULLIF(ciudad,''))), ''),
+            -- Supabase: updated_at real (trigger en cada UPDATE). Verificado en
+            -- vivo como ISO 8601 con offset +00:00 y microsegundos
+            -- (ej. 2026-06-26T04:56:51.504232+00:00). DuckDB castea ISO con
+            -- offset sin problema; dejamos el fallback a epoch ms por las dudas.
+            COALESCE(
+                TRY_CAST(updated_at AS TIMESTAMPTZ),
+                epoch_ms(TRY_CAST(updated_at AS BIGINT)) AT TIME ZONE 'UTC'
+            )
         FROM read_csv_auto('{SCRAPERS}/pacienteshospitales/pacientes.csv')""")
 
     if not parts:
@@ -235,7 +251,7 @@ def dedup(con: duckdb.DuckDBPyConnection) -> list:
         last_seen_location, last_seen_date, description,
         contact_name, contact_phone, contact_email,
         photo_url, status, source_name, source_record_id, source_url,
-        found_by, found_contact, found_hospital
+        found_by, found_contact, found_hospital, data_as_of
     FROM ranked WHERE rn = 1
     """).fetchall()
 
@@ -323,6 +339,7 @@ _COLS = [
     "contact_name", "contact_phone", "contact_email",
     "photo_url", "status",
     "found_by", "found_contact", "found_hospital",
+    "data_as_of",
 ]
 
 # max chars por índice en el tuple de output de _truncate
@@ -330,32 +347,53 @@ _LIMITS = {0: 500, 1: 20, 3: 20, 4: 500, 7: 300, 8: 50, 9: 200, 12: 300, 13: 300
 
 
 def _truncate(row: tuple) -> tuple:
-    # row tiene 18 elementos; saltamos source_name/id/url (índices 12-14)
-    lst = list(row[:12]) + list(row[15:18])
+    # row tiene 19 elementos; saltamos source_name/id/url (12-14), conservamos data_as_of (18)
+    lst = list(row[:12]) + list(row[15:18]) + [row[18]]
     for idx, max_len in _LIMITS.items():
         if isinstance(lst[idx], str) and len(lst[idx]) > max_len:
             lst[idx] = lst[idx][:max_len]
     return tuple(lst)
 
 
+# Prioridad temporal (Opción A): EXCLUDED (el scraper) solo gana si trae una
+# fecha confiable Y es estrictamente más nueva que la del dato vigente. Si la
+# fuente no tiene fecha (data_as_of NULL) nunca pisa: solo rellena nulos.
+_EXCL_WINS = (
+    "EXCLUDED.data_as_of IS NOT NULL AND "
+    "(missing_persons.data_as_of IS NULL OR EXCLUDED.data_as_of > missing_persons.data_as_of)"
+)
+
+# Campos de datos que se fusionan con criterio temporal.
+_MERGE_FIELDS = [
+    "age", "gender", "last_seen_location", "last_seen_date", "description",
+    "contact_name", "contact_phone", "contact_email", "photo_url",
+    "found_by", "found_contact", "found_hospital",
+]
+
+
+def _merge_clause(col: str) -> str:
+    # Gana el scraper -> su valor con fallback al existente; pierde -> conserva
+    # el existente y solo rellena si estaba nulo.
+    return (
+        f"{col} = CASE WHEN {_EXCL_WINS} "
+        f"THEN COALESCE(EXCLUDED.{col}, missing_persons.{col}) "
+        f"ELSE COALESCE(missing_persons.{col}, EXCLUDED.{col}) END"
+    )
+
+
+_SET_CLAUSES = ",\n        ".join(_merge_clause(c) for c in _MERGE_FIELDS) + ",\n        " + ",\n        ".join([
+    # 'found' es pegajoso: si cualquiera de los dos lados lo tiene, manda.
+    "status = CASE WHEN 'found' IN (missing_persons.status, EXCLUDED.status) THEN 'found' ELSE EXCLUDED.status END",
+    # El dato vigente avanza a la fecha más nueva (GREATEST ignora NULLs en PG).
+    "data_as_of = GREATEST(missing_persons.data_as_of, EXCLUDED.data_as_of)",
+    "updated_at = NOW()",
+])
+
 _UPSERT_SQL = f"""
     INSERT INTO missing_persons ({', '.join(_COLS)})
     VALUES %s
     ON CONFLICT (cedula) WHERE cedula IS NOT NULL DO UPDATE SET
-        age                = COALESCE(EXCLUDED.age,                missing_persons.age),
-        gender             = COALESCE(EXCLUDED.gender,             missing_persons.gender),
-        last_seen_location = COALESCE(EXCLUDED.last_seen_location, missing_persons.last_seen_location),
-        description        = COALESCE(EXCLUDED.description,        missing_persons.description),
-        contact_phone      = COALESCE(EXCLUDED.contact_phone,      missing_persons.contact_phone),
-        photo_url          = COALESCE(EXCLUDED.photo_url,          missing_persons.photo_url),
-        status             = CASE
-                                 WHEN missing_persons.status = 'found' THEN 'found'
-                                 ELSE EXCLUDED.status
-                             END,
-        found_by           = COALESCE(EXCLUDED.found_by,           missing_persons.found_by),
-        found_contact      = COALESCE(EXCLUDED.found_contact,      missing_persons.found_contact),
-        found_hospital     = COALESCE(EXCLUDED.found_hospital,     missing_persons.found_hospital),
-        updated_at         = NOW()
+        {_SET_CLAUSES}
 """
 
 

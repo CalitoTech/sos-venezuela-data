@@ -70,8 +70,20 @@ CREATE TABLE IF NOT EXISTS missing_persons (
     reported_by_source  VARCHAR(200),
     source_urls         TEXT[],
     first_seen_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    updated_at          TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+
+    -- Frescura del dato vigente en la fila. NO es "última escritura" (eso es
+    -- updated_at): es la fecha real del dato. La web la setea a NOW() en cada
+    -- edición humana; el ETL la setea al updated_at DE LA FUENTE. Es el árbitro
+    -- de la prioridad temporal: en un conflicto gana el dato con data_as_of mayor.
+    -- NULL = fuente sin timestamp confiable (solo rellena nulos, nunca pisa).
+    data_as_of          TIMESTAMPTZ
 );
+
+-- Migración para tablas ya existentes + backfill: una edición humana previa
+-- queda protegida usando su updated_at como fecha del dato.
+ALTER TABLE missing_persons ADD COLUMN IF NOT EXISTS data_as_of TIMESTAMPTZ;
+UPDATE missing_persons SET data_as_of = updated_at WHERE data_as_of IS NULL;
 
 CREATE UNIQUE INDEX IF NOT EXISTS uidx_mp_name_dob
     ON missing_persons (full_name, date_of_birth)
