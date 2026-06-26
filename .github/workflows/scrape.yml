@@ -19,12 +19,16 @@ jobs:
 
       - name: Run Go scrapers
         run: |
+          failed=0
           for dir in scrapers/*/; do
             if [ -f "$dir/main.go" ]; then
               echo "→ $dir"
-              (cd "$dir" && go run main.go)
+              (cd "$dir" && go run main.go) || { echo "⚠ $dir falló, continuando..."; failed=$((failed + 1)); }
             fi
           done
+          if [ $failed -gt 0 ]; then
+            echo "::warning::$failed scraper(s) fallaron — el ETL continúa con los datos disponibles"
+          fi
 
       - uses: actions/setup-python@v5
         with:
