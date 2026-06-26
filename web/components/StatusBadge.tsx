@@ -6,7 +6,7 @@ const config: Record<Status, { label: string; color: string; pulse: boolean }> =
 };
 
 export function StatusBadge({ status }: { status: Status }) {
-  const { label, color, pulse } = config[status] ?? config.unknown;
+  const { label, color, pulse } = config[status] ?? config.missing;
   return (
     <span
       style={{
