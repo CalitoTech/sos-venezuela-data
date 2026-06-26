@@ -67,7 +67,7 @@ export default function AgregarPage() {
                 <p style={labelStyle}>FOTO</p>
                 <PhotoUpload onUpload={setPhotoUrl} />
               </div>
-
+ 
               {/* Columna derecha: campos */}
               <div className="field-grid">
 
