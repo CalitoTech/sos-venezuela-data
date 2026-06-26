@@ -125,6 +125,12 @@ func main() {
 	start := time.Now()
 	client := newClient()
 
+	fmt.Println("Obteniendo total de registros...")
+	expectedTotal, err := getTotal(client)
+	if err != nil {
+		log.Fatalf("Error al obtener stats: %v", err)
+	}
+
 	_, src, _, _ := runtime.Caller(0)
 	f, err := os.Create(filepath.Join(filepath.Dir(src), outputFile))
 	if err != nil {
@@ -141,12 +147,6 @@ func main() {
 		"found_notes", "found_at", "hospital_name", "hospital_status",
 		"hidden_at", "deleted_at", "created_at", "updated_at",
 	})
-
-	fmt.Println("Obteniendo total de registros...")
-	expectedTotal, err := getTotal(client)
-	if err != nil {
-		log.Fatalf("Error al obtener stats: %v", err)
-	}
 	fmt.Printf("Total: %d personas\n", expectedTotal)
 
 	var (
