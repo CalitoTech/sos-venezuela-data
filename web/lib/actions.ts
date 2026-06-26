@@ -2,7 +2,6 @@
 
 import { pool } from "./db";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
 export async function searchPersons(query: string) {
   const client = await pool.connect();
@@ -99,7 +98,6 @@ export async function createPerson(formData: FormData) {
     client.release();
   }
   revalidatePath("/");
-  redirect("/");
 }
 
 export async function updateStatus(id: string, status: string, notes: string) {
