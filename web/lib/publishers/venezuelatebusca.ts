@@ -1,4 +1,5 @@
 import type { Publisher, PublishInput } from "./types";
+import { isSamePerson } from "./match";
 
 const BASE = "https://venezuelatebusca.com";
 
@@ -30,23 +31,50 @@ function toPayload(input: PublishInput) {
   };
 }
 
-type VTBPersona = { id: string; national_id?: string | null };
+type VTBPersona = {
+  id: string;
+  national_id?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  age?: number | null;
+};
 type VTBResponse = { persons?: VTBPersona[]; person?: VTBPersona };
+
+function fullName(p: VTBPersona): string {
+  return [p.first_name, p.last_name].filter(Boolean).join(" ").trim();
+}
 
 const venezuelatebusca: Publisher = {
   name: "venezuelatebusca",
   sourceUrl: BASE,
 
   async search(input: PublishInput): Promise<string | null> {
-    if (!input.cedula) return null;
+    // 1. Buscar por cédula (identificador fuerte)
+    if (input.cedula) {
+      const res = await fetch(
+        `${BASE}/api/persons?national_id=${encodeURIComponent(input.cedula)}&limit=5`,
+        { headers: { Accept: "application/json" } }
+      );
+      if (res.ok) {
+        const data = await res.json() as VTBResponse;
+        const byCedula = (data.persons ?? []).find((p) => p.national_id === input.cedula);
+        if (byCedula) return byCedula.id;
+      }
+    }
+
+    // 2. Fallback por nombre (fuzzy + edad) — mismo criterio que el ETL
+    if (!input.full_name.trim()) return null;
     const res = await fetch(
-      `${BASE}/api/persons?national_id=${encodeURIComponent(input.cedula)}&limit=5`,
+      `${BASE}/api/persons?q=${encodeURIComponent(input.full_name)}&limit=10`,
       { headers: { Accept: "application/json" } }
     );
     if (!res.ok) return null;
     const data = await res.json() as VTBResponse;
-    const list = data.persons ?? [];
-    return list.find((p) => p.national_id === input.cedula)?.id ?? null;
+    return (
+      (data.persons ?? []).find((p) =>
+        isSamePerson(input.full_name, input.age, fullName(p), p.age ?? null)
+      )?.id ?? null
+    );
   },
 
   async create(input: PublishInput): Promise<string> {

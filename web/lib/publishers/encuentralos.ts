@@ -1,23 +1,42 @@
 import type { Publisher, PublishInput } from "./types";
+import { isSamePerson } from "./match";
 
 const BASE = "https://encuentralos.tecnosoft.dev";
 
-type EncuentralosPersona = { id: string; cedula?: string };
+type EncuentralosPersona = { id: string; cedula?: string; nombre?: string; edad?: number | null };
 type EncuentralosResponse = EncuentralosPersona[] | { items?: EncuentralosPersona[] };
+
+function toList(data: EncuentralosResponse): EncuentralosPersona[] {
+  return Array.isArray(data) ? data : (data.items ?? []);
+}
 
 const encuentralos: Publisher = {
   name: "encuentralos",
   sourceUrl: BASE,
 
   async search(input: PublishInput): Promise<string | null> {
-    if (!input.cedula) return null;
+    // 1. Buscar por cédula (identificador fuerte)
+    if (input.cedula) {
+      const res = await fetch(
+        `${BASE}/api/personas?cedula=${encodeURIComponent(input.cedula)}&limit=5`
+      );
+      if (res.ok) {
+        const byCedula = toList(await res.json()).find((p) => p.cedula === input.cedula);
+        if (byCedula) return byCedula.id;
+      }
+    }
+
+    // 2. Fallback por nombre (fuzzy + edad) — mismo criterio que el ETL
+    if (!input.full_name.trim()) return null;
     const res = await fetch(
-      `${BASE}/api/personas?cedula=${encodeURIComponent(input.cedula)}&limit=5`
+      `${BASE}/api/personas?q=${encodeURIComponent(input.full_name)}&limit=10`
     );
     if (!res.ok) return null;
-    const data = await res.json() as EncuentralosResponse;
-    const list = Array.isArray(data) ? data : (data.items ?? []);
-    return list.find((p) => p.cedula === input.cedula)?.id ?? null;
+    return (
+      toList(await res.json()).find((p) =>
+        isSamePerson(input.full_name, input.age, p.nombre ?? "", p.edad ?? null)
+      )?.id ?? null
+    );
   },
 
   async create(input: PublishInput): Promise<string> {
