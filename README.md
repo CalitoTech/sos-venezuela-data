@@ -3,7 +3,7 @@
 > Plataforma centralizada de búsqueda de personas desaparecidas tras el terremoto en Venezuela (2026).
 
 Este proyecto agrega y normaliza datos de múltiples fuentes en línea que recopilan información de personas desaparecidas, para ofrecer una fuente única, limpia y consultable en tiempo real.
-
+ 
 ---
 
 ## El problema
