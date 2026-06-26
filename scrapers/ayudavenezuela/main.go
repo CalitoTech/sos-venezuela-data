@@ -56,22 +56,24 @@ func (f *flexInt) UnmarshalJSON(b []byte) error {
 }
 
 type Person struct {
-	ID           string  `json:"id"`
-	Tipo         string  `json:"tipo"`
-	Nombre       string  `json:"nombre"`
-	Cedula       string  `json:"cedula"`
-	Edad         flexInt `json:"edad"`
-	EstadoPersona string `json:"estado_persona"`
-	Estado       string `json:"estado"`
-	Municipio    string `json:"municipio"`
-	Descripcion  string `json:"descripcion"`
-	Nota         string `json:"nota"`
-	Autor        string `json:"autor"`
-	Contacto     string `json:"contacto"`
-	Timestamp    string `json:"timestamp"`
-	Verificado   bool   `json:"verificado"`
-	Reportado    bool   `json:"reportado"`
-	TieneFoto    bool   `json:"tiene_foto"`
+	ID                string  `json:"id"`
+	Tipo              string  `json:"tipo"`
+	Nombre            string  `json:"nombre"`
+	Cedula            string  `json:"cedula"`
+	Edad              flexInt `json:"edad"`
+	EstadoPersona     string  `json:"estado_persona"`
+	Estado            string  `json:"estado"`
+	Municipio         string  `json:"municipio"`
+	Descripcion       string  `json:"descripcion"`
+	Nota              string  `json:"nota"`
+	Autor             string  `json:"autor"`
+	Contacto          string  `json:"contacto"`
+	Timestamp         string  `json:"timestamp"`
+	Verificado        bool    `json:"verificado"`
+	Reportado         bool    `json:"reportado"`
+	TieneFoto         bool    `json:"tiene_foto"`
+	LocalizadoPor     string  `json:"localizadoPor"`
+	LocalizadoContacto string `json:"localizadoContacto"`
 }
 
 type Stats struct {
@@ -165,6 +167,7 @@ func main() {
 		"estado_persona", "estado", "municipio",
 		"descripcion", "nota", "autor", "contacto",
 		"timestamp", "verificado", "reportado", "tiene_foto",
+		"localizado_por", "localizado_contacto",
 	})
 
 	offsets := make(chan int, pages)
@@ -198,6 +201,7 @@ func main() {
 						p.Descripcion, p.Nota, p.Autor, p.Contacto,
 						p.Timestamp, strconv.FormatBool(p.Verificado),
 						strconv.FormatBool(p.Reportado), strconv.FormatBool(p.TieneFoto),
+						p.LocalizadoPor, p.LocalizadoContacto,
 					})
 				}
 				mu.Unlock()

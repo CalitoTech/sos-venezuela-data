@@ -2,6 +2,7 @@
 
 import { pool } from "./db";
 import { revalidatePath } from "next/cache";
+import { publishToAll, type PublishInput } from "./publishers";
 
 export async function searchPersons(query: string) {
   const client = await pool.connect();
@@ -58,9 +59,21 @@ export async function getStats() {
 }
 
 export async function createPerson(formData: FormData) {
+  const full_name    = (formData.get("full_name") as string)?.trim();
+  const cedula       = (formData.get("cedula") as string) || null;
+  const age          = formData.get("age") ? Number(formData.get("age")) : null;
+  const gender       = (formData.get("gender") as "male" | "female") || null;
+  const location     = (formData.get("last_seen_location") as string) || null;
+  const description  = (formData.get("description") as string) || null;
+  const contact_name = (formData.get("contact_name") as string) || null;
+  const contact_phone = (formData.get("contact_phone") as string) || null;
+  const contact_email = (formData.get("contact_email") as string) || null;
+  const photo_url    = (formData.get("photo_url") as string) || null;
+
   const client = await pool.connect();
+  let personId: string;
   try {
-    await client.query(
+    const res = await client.query<{ id: string }>(
       `INSERT INTO missing_persons
         (full_name, cedula, date_of_birth, age, gender,
          last_seen_location, last_seen_date, description,
@@ -77,39 +90,76 @@ export async function createPerson(formData: FormData) {
          contact_phone       = EXCLUDED.contact_phone,
          contact_email       = EXCLUDED.contact_email,
          photo_url           = EXCLUDED.photo_url,
-         updated_at          = NOW()`,
+         updated_at          = NOW()
+       RETURNING id`,
       [
-        formData.get("full_name"),
-        formData.get("cedula") || null,
+        full_name, cedula,
         formData.get("date_of_birth") || null,
-        formData.get("age") ? Number(formData.get("age")) : null,
-        formData.get("gender") || null,
-        formData.get("last_seen_location") || null,
+        age, gender, location,
         formData.get("last_seen_date") || null,
-        formData.get("description") || null,
-        formData.get("contact_name") || null,
-        formData.get("contact_phone") || null,
-        formData.get("contact_email") || null,
-        formData.get("photo_url") || null,
-        "manual",
+        description, contact_name, contact_phone, contact_email,
+        photo_url, "manual",
       ]
     );
+    personId = res.rows[0].id;
   } finally {
     client.release();
   }
+
+  const input: PublishInput = {
+    full_name, cedula, age, gender, status: "missing",
+    status_notes: null, found_by: null, found_contact: null, found_hospital: null,
+    last_seen_location: location, description,
+    photo_url, contact_name, contact_phone, contact_email,
+  };
+
+  await publishToAll(personId, input);
+
   revalidatePath("/");
 }
 
-export async function updateStatus(id: string, status: string, notes: string) {
+export async function updateStatus(
+  id: string,
+  status: string,
+  notes: string,
+  found_by?: string,
+  found_contact?: string,
+  found_hospital?: string
+) {
   const client = await pool.connect();
   try {
     await client.query(
-      `UPDATE missing_persons SET status = $1, status_notes = $2 WHERE id = $3`,
-      [status, notes, id]
+      `UPDATE missing_persons
+       SET status = $1, status_notes = $2, found_by = $3, found_contact = $4, found_hospital = $5
+       WHERE id = $6`,
+      [status, notes, found_by || null, found_contact || null, found_hospital || null, id]
     );
   } finally {
     client.release();
   }
+
+  const person = await getPersonById(id);
+  if (person) {
+    const input: PublishInput = {
+      full_name:          person.full_name,
+      cedula:             person.cedula,
+      age:                person.age,
+      gender:             person.gender as "male" | "female" | null,
+      last_seen_location: person.last_seen_location,
+      description:        person.description,
+      photo_url:          person.photo_url,
+      contact_name:       person.contact_name,
+      contact_phone:      person.contact_phone,
+      contact_email:      person.contact_email,
+      status:             status as "missing" | "found",
+      status_notes:       notes || null,
+      found_by:           found_by || null,
+      found_contact:      found_contact || null,
+      found_hospital:     found_hospital || null,
+    };
+    await publishToAll(id, input);
+  }
+
   revalidatePath("/");
   revalidatePath(`/persona/${id}`);
 }

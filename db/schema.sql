@@ -61,6 +61,11 @@ CREATE TABLE IF NOT EXISTS missing_persons (
                             CHECK (status IN ('missing', 'found')),
     status_notes        TEXT,
 
+    -- Trazabilidad del hallazgo (solo cuando status = 'found')
+    found_by            VARCHAR(300),
+    found_contact       VARCHAR(300),
+    found_hospital      VARCHAR(300),
+
     -- Trazabilidad
     reported_by_source  VARCHAR(200),
     source_urls         TEXT[],

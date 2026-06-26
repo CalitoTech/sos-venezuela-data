@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { getPersonById, updateStatus } from "@/lib/actions";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PhotoZoom } from "@/components/PhotoZoom";
+import { UpdateStatusForm } from "@/components/UpdateStatusForm";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +33,14 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
 
   async function handleStatusUpdate(formData: FormData) {
     "use server";
-    await updateStatus(id, formData.get("status") as string, formData.get("status_notes") as string);
+    await updateStatus(
+      id,
+      formData.get("status") as string,
+      formData.get("status_notes") as string,
+      formData.get("found_by") as string | undefined,
+      formData.get("found_contact") as string | undefined,
+      formData.get("found_hospital") as string | undefined,
+    );
   }
 
   return (
@@ -132,42 +140,11 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
               <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "1rem" }}>
                 ACTUALIZAR ESTADO
               </p>
-              <form action={handleStatusUpdate} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
-                <select
-                  name="status"
-                  defaultValue={person.status}
-                  style={{
-                    background: "var(--bg-input)", border: "1px solid var(--border)",
-                    borderRadius: 3, color: "var(--text)", fontFamily: "var(--mono)",
-                    fontSize: "0.82rem", padding: "0.55rem 0.8rem",
-                  }}
-                >
-                  <option value="missing">No localizado</option>
-                  <option value="found">Localizado</option>
-                </select>
-                <textarea
-                  name="status_notes"
-                  rows={2}
-                  defaultValue={person.status_notes ?? ""}
-                  placeholder="Notas sobre el cambio de estado..."
-                  style={{
-                    background: "var(--bg-input)", border: "1px solid var(--border)",
-                    borderRadius: 3, color: "var(--text)", fontFamily: "var(--mono)",
-                    fontSize: "0.82rem", padding: "0.55rem 0.8rem", resize: "vertical",
-                  }}
-                />
-                <button
-                  type="submit"
-                  style={{
-                    background: "transparent", border: "1px solid var(--border-hi)",
-                    borderRadius: 3, color: "var(--text)", fontFamily: "var(--mono)",
-                    fontSize: "0.75rem", fontWeight: 600, letterSpacing: "0.08em",
-                    padding: "0.55rem", cursor: "pointer",
-                  }}
-                >
-                  GUARDAR CAMBIO
-                </button>
-              </form>
+              <UpdateStatusForm
+                currentStatus={person.status}
+                currentNotes={person.status_notes}
+                action={handleStatusUpdate}
+              />
             </div>
           </div>
 

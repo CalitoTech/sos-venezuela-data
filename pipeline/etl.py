@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-ETL: normaliza los 5 CSVs de scrapers/ y los carga en Postgres.
+ETL: normaliza los CSVs de scrapers/ y los carga en Postgres.
 Requiere: pip install duckdb psycopg2-binary python-dotenv rapidfuzz
 """
 import os
@@ -43,7 +43,10 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
         END                                                             AS status,
         'ayudavenezuela'                                                AS source_name,
         id                                                              AS source_record_id,
-        NULL::VARCHAR                                                   AS source_url
+        NULL::VARCHAR                                                   AS source_url,
+        NULLIF(TRIM(localizado_por), '')                                AS found_by,
+        NULLIF(TRIM(localizado_contacto), '')                           AS found_contact,
+        NULL::VARCHAR                                                   AS found_hospital
     FROM read_csv_auto('{SCRAPERS}/ayudavenezuela/personas.csv')
 
     UNION ALL
@@ -66,7 +69,10 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
             WHEN 'localizado'   THEN 'found'
             ELSE 'missing'
         END,
-        'desaparecidosapi', id, NULL
+        'desaparecidosapi', id, NULL,
+        NULLIF(TRIM(localizado_por), ''),
+        NULLIF(TRIM(localizado_contacto), ''),
+        NULL
     FROM read_csv_auto('{SCRAPERS}/desaparecidosapi/personas.csv')
 
     UNION ALL
@@ -92,7 +98,10 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
             WHEN 'localizado'   THEN 'found'
             ELSE 'missing'
         END,
-        'encuentralos', id, NULL
+        'encuentralos', id, NULL,
+        NULLIF(TRIM(pv_por), ''),
+        NULLIF(TRIM(pv_contacto), ''),
+        NULLIF(TRIM(pv_lugar), '')
     FROM read_csv_auto('{SCRAPERS}/encuentralos/personas.csv')
 
     UNION ALL
@@ -115,7 +124,8 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
             WHEN 'Encontrado' THEN 'found'
             ELSE 'missing'
         END,
-        'venezuelareportaorg', id, url
+        'venezuelareportaorg', id, url,
+        NULL, NULL, NULL
     FROM read_csv_auto('{SCRAPERS}/venezuelareportaorg/personas.csv')
 
     UNION ALL
@@ -135,14 +145,39 @@ def normalize(con: duckdb.DuckDBPyConnection) -> None:
         NULLIF(reporter_name, ''),
         NULLIF(reporter_phone, ''),
         NULLIF(reporter_email, ''),
-        NULL,  -- photo_key es solo filename, sin base URL conocida
+        NULL,
         CASE LOWER(TRIM(status))
             WHEN 'missing' THEN 'missing'
             WHEN 'found'   THEN 'found'
             ELSE 'missing'
         END,
-        'venezuelatebusca', id, NULL
+        'venezuelatebusca', id, NULL,
+        NULLIF(found_notes, ''),
+        NULL,
+        NULLIF(hospital_name, '')
     FROM read_csv_auto('{SCRAPERS}/venezuelatebusca/personas.csv')
+
+    UNION ALL
+
+    -- pacienteshospitales
+    SELECT
+        nombre,
+        NULL,
+        TRY_CAST(edad AS SMALLINT),
+        NULL,
+        NULL,
+        NULL,
+        NULLIF(notas, ''),
+        NULL,
+        NULL,
+        NULL,
+        NULL,
+        'missing',
+        'pacienteshospitales', id, NULL,
+        NULLIF(TRIM(reportado_por), ''),
+        NULL,
+        NULLIF(TRIM(CONCAT_WS(', ', NULLIF(hospital,''), NULLIF(ciudad,''))), '')
+    FROM read_csv_auto('{SCRAPERS}/pacienteshospitales/pacientes.csv')
     """)
 
 
@@ -150,10 +185,11 @@ def dedup(con: duckdb.DuckDBPyConnection) -> list:
     """
     Dedup en dos niveles:
     1. Por cédula exacta (clave fuerte)
-    2. Por nombre normalizado para registros sin cédula
+    2. Por nombre + edad para registros sin cédula — previene falsos positivos
+       entre homónimos de distinta edad
+    3. Fallback a nombre solo cuando no hay edad
 
-    Cuando hay duplicados, se elige el registro más completo
-    (más campos no nulos) usando un score de completitud.
+    Cuando hay duplicados se elige el registro más completo.
     """
     return con.execute("""
     WITH scored AS (
@@ -164,14 +200,21 @@ def dedup(con: duckdb.DuckDBPyConnection) -> list:
              CASE WHEN photo_url           IS NOT NULL THEN 2  ELSE 0 END +
              CASE WHEN description         IS NOT NULL THEN 1  ELSE 0 END +
              CASE WHEN last_seen_location  IS NOT NULL THEN 1  ELSE 0 END +
-             CASE WHEN contact_phone       IS NOT NULL THEN 1  ELSE 0 END) AS completeness
+             CASE WHEN contact_phone       IS NOT NULL THEN 1  ELSE 0 END +
+             CASE WHEN found_by            IS NOT NULL THEN 2  ELSE 0 END +
+             CASE WHEN found_contact       IS NOT NULL THEN 1  ELSE 0 END +
+             CASE WHEN found_hospital      IS NOT NULL THEN 1  ELSE 0 END) AS completeness
         FROM normalized
         WHERE full_name IS NOT NULL AND TRIM(full_name) != ''
     ),
     ranked AS (
         SELECT *,
             ROW_NUMBER() OVER (
-                PARTITION BY COALESCE(cedula, UPPER(TRIM(full_name)))
+                PARTITION BY CASE
+                    WHEN cedula IS NOT NULL THEN cedula
+                    WHEN age    IS NOT NULL THEN UPPER(TRIM(full_name)) || '|' || CAST(age AS VARCHAR)
+                    ELSE                        UPPER(TRIM(full_name))
+                END
                 ORDER BY completeness DESC, status DESC
             ) AS rn
         FROM scored
@@ -180,12 +223,14 @@ def dedup(con: duckdb.DuckDBPyConnection) -> list:
         full_name, cedula, age, gender,
         last_seen_location, last_seen_date, description,
         contact_name, contact_phone, contact_email,
-        photo_url, status, source_name, source_record_id, source_url
+        photo_url, status, source_name, source_record_id, source_url,
+        found_by, found_contact, found_hospital
     FROM ranked WHERE rn = 1
     """).fetchall()
 
 
 FUZZY_THRESHOLD = 88  # token_sort_ratio mínimo para considerar misma persona
+AGE_TOLERANCE   = 2   # años de diferencia permitidos al fusionar por nombre
 
 
 def _norm(name: str) -> str:
@@ -199,19 +244,32 @@ def _norm_str(name: str) -> str:
 
 
 def _completeness(row: tuple) -> int:
-    weights = [0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 2, 0]  # índices 0-11
+    # Índices: 0=full_name 1=cedula 2=age 3=gender 4=last_seen_location
+    #          5=last_seen_date 6=description 7=contact_name 8=contact_phone
+    #          9=contact_email 10=photo_url 11=status 12=source_name
+    #          13=source_record_id 14=source_url 15=found_by 16=found_contact 17=found_hospital
+    weights = [
+        0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 2, 0,  # 0-11
+        0, 0, 0,                                # 12-14 (source — no cuentan)
+        2, 1, 1,                                # 15-17 (found fields)
+    ]
     return sum(w for w, v in zip(weights, row) if v is not None)
+
+
+def _ages_compatible(rows: list, ia: int, ib: int) -> bool:
+    """Dos registros son compatibles si sus edades difieren ≤ AGE_TOLERANCE o alguna es nula."""
+    a1, a2 = rows[ia][2], rows[ib][2]
+    if a1 is None or a2 is None:
+        return True
+    return abs(a1 - a2) <= AGE_TOLERANCE
 
 
 def fuzzy_dedup(rows: list) -> list:
     """
     Segunda pasada de dedup para registros sin cédula.
-    Usa blocking por primeras 4 letras del nombre normalizado
-    para evitar O(n²) sobre el dataset completo.
-    Dentro de cada bloque compara con token_sort_ratio (maneja
-    orden de palabras: 'Juan Pablo' ≈ 'Pablo Juan').
+    Usa blocking por primeras 4 letras del nombre normalizado.
+    Solo fusiona si token_sort_ratio ≥ FUZZY_THRESHOLD Y edades son compatibles.
     """
-    # Union-Find
     parent = list(range(len(rows)))
 
     def find(x: int) -> int:
@@ -223,12 +281,10 @@ def fuzzy_dedup(rows: list) -> list:
     def union(x: int, y: int) -> None:
         parent[find(x)] = find(y)
 
-    # Índice: primeras 4 letras del nombre normalizado → lista de (idx, nombre_norm)
     blocks: dict[str, list] = defaultdict(list)
     norms = [_norm_str(r[0]) for r in rows]
     for i, n in enumerate(norms):
-        key = n[:4]
-        blocks[key].append(i)
+        blocks[n[:4]].append(i)
 
     for indices in blocks.values():
         if len(indices) < 2:
@@ -238,11 +294,10 @@ def fuzzy_dedup(rows: list) -> list:
                 ia, ib = indices[a], indices[b]
                 if find(ia) == find(ib):
                     continue
-                score = fuzz.token_sort_ratio(norms[ia], norms[ib])
-                if score >= FUZZY_THRESHOLD:
+                if fuzz.token_sort_ratio(norms[ia], norms[ib]) >= FUZZY_THRESHOLD \
+                        and _ages_compatible(rows, ia, ib):
                     union(ia, ib)
 
-    # Agrupar y quedarse con el más completo de cada grupo
     groups: dict[int, list] = defaultdict(list)
     for i, row in enumerate(rows):
         groups[find(i)].append(row)
@@ -250,18 +305,22 @@ def fuzzy_dedup(rows: list) -> list:
     return [max(g, key=_completeness) for g in groups.values()]
 
 
+# Columnas que van a missing_persons (sin los de fuente en posiciones 12-14)
 _COLS = [
     "full_name", "cedula", "age", "gender",
     "last_seen_location", "last_seen_date", "description",
     "contact_name", "contact_phone", "contact_email",
     "photo_url", "status",
+    "found_by", "found_contact", "found_hospital",
 ]
 
-_LIMITS = {0: 500, 1: 20, 3: 20, 4: 500, 7: 300, 8: 50, 9: 200}
+# max chars por índice en el tuple de output de _truncate
+_LIMITS = {0: 500, 1: 20, 3: 20, 4: 500, 7: 300, 8: 50, 9: 200, 12: 300, 13: 300, 14: 300}
 
 
 def _truncate(row: tuple) -> tuple:
-    lst = list(row[:12])
+    # row tiene 18 elementos; saltamos source_name/id/url (índices 12-14)
+    lst = list(row[:12]) + list(row[15:18])
     for idx, max_len in _LIMITS.items():
         if isinstance(lst[idx], str) and len(lst[idx]) > max_len:
             lst[idx] = lst[idx][:max_len]
@@ -282,6 +341,9 @@ _UPSERT_SQL = f"""
                                  WHEN missing_persons.status = 'found' THEN 'found'
                                  ELSE EXCLUDED.status
                              END,
+        found_by           = COALESCE(EXCLUDED.found_by,           missing_persons.found_by),
+        found_contact      = COALESCE(EXCLUDED.found_contact,      missing_persons.found_contact),
+        found_hospital     = COALESCE(EXCLUDED.found_hospital,     missing_persons.found_hospital),
         updated_at         = NOW()
 """
 
@@ -302,9 +364,9 @@ if __name__ == "__main__":
     print("Normalizando fuentes...")
     normalize(con)
     total_raw = con.execute("SELECT COUNT(*) FROM normalized").fetchone()[0]
-    print(f"  {total_raw:,} registros crudos en 5 fuentes")
+    print(f"  {total_raw:,} registros crudos en 6 fuentes")
 
-    print("Deduplicando (exacto)...")
+    print("Deduplicando (exacto + nombre+edad)...")
     rows = dedup(con)
     print(f"  {len(rows):,} tras dedup exacto ({total_raw - len(rows):,} eliminados)")
 

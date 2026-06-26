@@ -37,6 +37,9 @@ type Person struct {
 	Estado          string   `json:"estado"`
 	Creado          string   `json:"creado"`
 	Cedula          string   `json:"cedula"`
+	PvPor           string   `json:"pv_por"`
+	PvContacto      string   `json:"pv_contacto"`
+	PvLugar         string   `json:"pv_lugar"`
 }
 
 type Response struct {
@@ -123,6 +126,7 @@ func main() {
 		"id", "nombre", "edad", "sexo", "descripcion", "foto",
 		"ultima_ubicacion", "ultima_lat", "ultima_lng", "ultima_vez",
 		"reporta_contacto", "estado", "creado", "cedula",
+		"pv_por", "pv_contacto", "pv_lugar",
 	})
 
 	offsets := make(chan int, pages)
@@ -156,6 +160,7 @@ func main() {
 						floatStr(p.UltimaLat), floatStr(p.UltimaLng),
 						p.UltimaVez, p.ReportaContacto, p.Estado,
 						p.Creado, p.Cedula,
+						p.PvPor, p.PvContacto, p.PvLugar,
 					})
 				}
 				mu.Unlock()
