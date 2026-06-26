@@ -39,6 +39,9 @@ jobs:
       - name: Install ETL dependencies
         run: pip install -r pipeline/requirements.txt
 
+      - name: Prefer IPv4 over IPv6
+        run: echo "precedence ::ffff:0:0/96  100" | sudo tee -a /etc/gai.conf
+
       - name: Run ETL
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
