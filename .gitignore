@@ -7,3 +7,4 @@ data/processed/
 *.db
 *.sqlite
 .DS_Store
+postgres_data/

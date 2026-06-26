@@ -30,17 +30,55 @@ Un scraper que consolida todas las fuentes conocidas en una base de datos unific
 
 ```
 sos-venezuela-data/
+├── db/
+│   └── schema.sql          # Schema completo — importable directamente
 ├── config/
 │   └── sources.yaml        # Lista de fuentes a scrapear
 ├── scrapers/               # Un scraper por fuente
 │   └── base.py             # Clase base compartida
 ├── data/
-│   ├── raw/                # Datos crudos por fuente
-│   └── processed/          # Datos limpios y unificados
-├── api/                    # API REST (opcional, fase 2)
-├── web/                    # Frontend de consulta (fase 2)
-├── tests/
+│   └── processed/          # Datos limpios exportados (CSV/JSON)
+├── api/                    # API REST (fase 2)
+├── web/                    # Frontend de búsqueda (fase 2)
+├── docker-compose.yml      # Levanta PostgreSQL en local
+├── .env.example
 └── requirements.txt
+```
+
+---
+
+## Base de datos
+
+Una sola tabla `missing_persons` — una fila = una persona real.
+
+La deduplicación funciona así:
+- Si hay **cédula** → es la clave única (constraint `UNIQUE` en `cedula`)
+- Sin cédula → se usa `(full_name, date_of_birth)` como fallback
+
+Los scrapers deben hacer `INSERT ... ON CONFLICT DO UPDATE` para actualizar registros existentes sin crear duplicados.
+
+### Levantar la base de datos (requiere Docker)
+
+```bash
+docker compose up -d
+```
+
+Eso levanta PostgreSQL en `localhost:5432` y aplica `db/schema.sql` automáticamente.
+
+```
+Host:     localhost
+Puerto:   5432
+DB:       sos_venezuela
+Usuario:  sos_user
+Password: sos_pass
+```
+
+### Sin Docker (PostgreSQL nativo)
+
+```bash
+cp .env.example .env           # edita con tus credenciales
+createdb sos_venezuela
+psql -U sos_user -d sos_venezuela -f db/schema.sql
 ```
 
 ---
@@ -53,7 +91,7 @@ Este proyecto necesita ayuda urgente. Cualquier contribución cuenta.
 
 - **Agregar fuentes**: conoces un sitio con listados de desaparecidos → abre un issue
 - **Escribir scrapers**: implementar el scraper para una fuente nueva
-- **Limpiar datos**: mejorar el proceso de normalización y deduplicación
+- **Normalización**: mejorar la lógica de deduplicación por nombre/cédula
 - **Frontend**: construir la interfaz de búsqueda
 - **Devops**: automatizar la ejecución periódica de los scrapers
 
@@ -62,9 +100,16 @@ Este proyecto necesita ayuda urgente. Cualquier contribución cuenta.
 ```bash
 git clone https://github.com/CalitoTech/sos-venezuela-data.git
 cd sos-venezuela-data
+
+# Base de datos
+docker compose up -d
+
+# Python
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+
+cp .env.example .env
 ```
 
 ### Flujo de trabajo
@@ -78,7 +123,7 @@ pip install -r requirements.txt
 ## Stack tecnológico (propuesto)
 
 - **Python** — scrapers (requests / httpx + BeautifulSoup / Playwright)
-- **SQLite / PostgreSQL** — almacenamiento
+- **PostgreSQL 16** — almacenamiento (Docker)
 - **FastAPI** — API REST (fase 2)
 - **Next.js o HTML estático** — frontend (fase 2)
 
