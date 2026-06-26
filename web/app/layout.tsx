@@ -4,6 +4,7 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "SOS Venezuela — Personas Desaparecidas",
   description: "Registro centralizado de personas desaparecidas tras el terremoto en Venezuela (2026).",
+  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
