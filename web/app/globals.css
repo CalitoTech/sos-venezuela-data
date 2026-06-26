@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -17,7 +17,7 @@
   --text-faint:#444444;
   --mono:      'IBM Plex Mono', monospace;
   --sans:      'IBM Plex Sans', sans-serif;
-  --display:   'Bebas Neue', sans-serif;
+  --display:   'Playfair Display', Georgia, serif;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -58,3 +58,14 @@ body::before {
 .animate-fade-in-up {
   animation: fade-in-up 0.35s ease both;
 }
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.anim-1 { animation: fade-in-up 0.5s ease both 0.05s; }
+.anim-2 { animation: fade-in-up 0.5s ease both 0.15s; }
+.anim-3 { animation: fade-in-up 0.5s ease both 0.25s; }
+.anim-4 { animation: fade-in-up 0.5s ease both 0.35s; }
+.anim-5 { animation: fade-in-up 0.5s ease both 0.45s; }
