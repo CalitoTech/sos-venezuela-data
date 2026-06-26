@@ -27,136 +27,78 @@ export default async function Home({
   ]);
 
   return (
-    <main style={{ minHeight: "100vh", padding: "0 0 5rem" }}>
+    <main className="min-h-screen pb-20">
 
       {/* ── HEADER ── */}
-      <header style={{
-        borderBottom: "1px solid var(--border)",
-        background: "#0a0a0a",
-        position: "sticky", top: 0, zIndex: 100,
-      }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0.75rem 1.5rem", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
-            <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--red)", display: "inline-block", animation: "pulse-red 1.4s ease-in-out infinite", flexShrink: 0 }} />
-            <span style={{ fontFamily: "var(--mono)", fontSize: "0.8rem", fontWeight: 600, letterSpacing: "0.12em", color: "var(--text)" }}>
+      <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[#0a0a0a]">
+        <div className="mx-auto max-w-[1100px] px-4 sm:px-6 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="w-2 h-2 rounded-full bg-[var(--red)] shrink-0 animate-[pulse-red_1.4s_ease-in-out_infinite]" />
+            <span className="font-mono text-xs font-semibold tracking-widest text-[var(--text)]">
               SOS VENEZUELA
             </span>
-            <span className="header-sub" style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.06em", borderLeft: "1px solid var(--border)", paddingLeft: "0.75rem" }}>
+            <span className="hidden sm:inline font-mono text-[0.6rem] text-[var(--text-faint)] tracking-wider border-l border-[var(--border)] pl-3">
               DESAPARECIDOS
             </span>
           </div>
-          <Link href="/agregar" style={{
-            fontFamily: "var(--mono)", fontSize: "0.72rem", fontWeight: 600,
-            background: "var(--red)", color: "#fff",
-            padding: "0.45rem 1rem", borderRadius: 2,
-            textDecoration: "none", letterSpacing: "0.08em",
-          }}>
+          <Link href="/agregar" className="font-mono text-[0.72rem] font-semibold bg-[var(--red)] text-white px-4 py-2 rounded-sm tracking-wider no-underline">
             + REPORTAR
           </Link>
         </div>
       </header>
 
       {/* ── HERO ── */}
-      <section style={{
-        maxWidth: 1100, margin: "0 auto", padding: "4rem 1.5rem 0",
-        borderLeft: "none",
-      }}>
-        {/* Eyebrow */}
-        <p className="anim-1" style={{
-          fontFamily: "var(--mono)", fontSize: "0.62rem", fontWeight: 600,
-          color: "var(--red)", letterSpacing: "0.2em", textTransform: "uppercase",
-          display: "flex", alignItems: "center", gap: 8, marginBottom: "1.25rem",
-        }}>
-          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--red)", display: "inline-block", animation: "pulse-red 1.4s ease-in-out infinite" }} />
+      <section className="mx-auto max-w-[1100px] px-4 sm:px-6 pt-10 sm:pt-16">
+        <p className="anim-1 font-mono text-[0.62rem] font-semibold text-[var(--red)] tracking-[0.2em] uppercase flex items-center gap-2 mb-5">
+          <span className="w-1.5 h-1.5 rounded-full bg-[var(--red)] animate-[pulse-red_1.4s_ease-in-out_infinite]" />
           EMERGENCIA — SISMO DE JUNIO 2026
         </p>
 
-        {/* Headline with red left border */}
-        <div className="anim-2" style={{
-          borderLeft: "3px solid var(--red)", paddingLeft: "1.5rem",
-          marginBottom: "2rem",
-        }}>
-          <h1 style={{
-            fontFamily: "var(--display)",
-            fontSize: "clamp(3rem, 7vw, 5.5rem)",
-            fontWeight: 700,
-            lineHeight: 1.0,
-            color: "#f5f0e8",
-            letterSpacing: "-0.02em",
-            fontStyle: "italic",
-          }}>
+        <div className="anim-2 border-l-[3px] border-[var(--red)] pl-6 mb-8">
+          <h1 className="font-[var(--display)] font-bold italic text-[#f5f0e8] leading-none tracking-tight" style={{ fontSize: "clamp(2.8rem, 7vw, 5.5rem)" }}>
             Cada nombre<br />
-            <span style={{ fontStyle: "normal", color: "#c8c0b0" }}>importa.</span>
+            <span className="not-italic text-[#c8c0b0]">importa.</span>
           </h1>
         </div>
 
-        {/* Body copy + CTA side by side */}
-        <div className="anim-3" style={{
-          display: "flex", flexWrap: "wrap", gap: "2rem", alignItems: "flex-start",
-          paddingLeft: "calc(1.5rem + 3px)", marginBottom: "3rem",
-        }}>
-          <div style={{ flex: "1 1 280px", minWidth: 0 }}>
-            <p style={{
-              fontFamily: "var(--sans)", fontSize: "1rem", lineHeight: 1.75,
-              color: "#7a7060",
-            }}>
+        <div className="anim-3 flex flex-wrap gap-8 items-start pl-6 mb-10">
+          <div className="flex-1 min-w-[240px]">
+            <p className="font-[var(--sans)] text-base leading-relaxed text-[#7a7060]">
               Hay familias que siguen sin dormir esperando una noticia.
               Si perdiste contacto con alguien, repórtalo aquí — cualquier
               dato ayuda. Si ya apareció, también avísanos, para que su
               nombre deje de estar en esta lista.
             </p>
-            <p style={{
-              fontFamily: "var(--sans)", fontSize: "0.82rem", lineHeight: 1.65,
-              color: "#4a4438", marginTop: "1rem",
-            }}>
+            <p className="font-[var(--sans)] text-[0.82rem] leading-relaxed text-[#4a4438] mt-4">
               Plataforma ciudadana y sin fines de lucro. No solicitamos dinero.
               Los datos publicados son responsabilidad de quien los reporta.
             </p>
           </div>
 
-          <div style={{ flex: "0 0 auto", display: "flex", flexDirection: "column", gap: "0.75rem", paddingTop: "0.25rem" }}>
-            <Link href="/agregar" style={{
-              display: "block", textAlign: "center",
-              background: "var(--red)", color: "#fff",
-              fontFamily: "var(--sans)", fontSize: "0.9rem", fontWeight: 700,
-              padding: "1rem 1.75rem", borderRadius: 3,
-              textDecoration: "none", letterSpacing: "0.01em",
-              whiteSpace: "nowrap",
-            }}>
+          <div className="flex flex-col gap-3 pt-1 shrink-0">
+            <Link href="/agregar" className="block text-center bg-[var(--red)] text-white font-[var(--sans)] text-[0.9rem] font-bold px-7 py-4 rounded no-underline whitespace-nowrap">
               + Reportar a alguien
             </Link>
-            <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", textAlign: "center", letterSpacing: "0.05em" }}>
+            <p className="font-mono text-[0.6rem] text-[var(--text-faint)] text-center tracking-wider">
               GRATIS · MENOS DE 1 MINUTO
             </p>
           </div>
         </div>
       </section>
 
-      {/* ── STATS BAR ── tipo periódico, horizontal */}
-      <div className="anim-3" style={{
-        borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)",
-        background: "#0e0e0e",
-      }}>
-        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 1.5rem", display: "flex", flexWrap: "wrap" }}>
+      {/* ── STATS BAR ── */}
+      <div className="anim-3 border-t border-b border-[var(--border)] bg-[#0e0e0e]">
+        <div className="mx-auto max-w-[1100px] px-4 sm:px-6 flex flex-wrap">
           {[
             { label: "PERSONAS REPORTADAS", value: stats?.total   ?? 0, color: "#f5f0e8" },
             { label: "AÚN SIN CONTACTO",    value: stats?.missing ?? 0, color: "var(--red)" },
             { label: "LOCALIZADAS",          value: stats?.found  ?? 0, color: "var(--green)" },
           ].map((s) => (
-            <div key={s.label} style={{
-              flex: "1 1 120px",
-              display: "flex", alignItems: "baseline", gap: "0.75rem",
-              padding: "1.1rem 1rem",
-              borderRight: "1px solid var(--border)",
-            }}>
-              <span style={{
-                fontFamily: "var(--display)",
-                fontSize: "clamp(1.6rem, 6vw, 2.6rem)",
-                fontWeight: 700, lineHeight: 1, color: s.color,
-              }}>
+            <div key={s.label} className="flex-1 min-w-[120px] flex items-baseline gap-3 py-4 px-3 border-r border-[var(--border)] last:border-r-0">
+              <span className="font-[var(--display)] font-bold leading-none" style={{ fontSize: "clamp(1.6rem, 6vw, 2.6rem)", color: s.color }}>
                 {s.value.toLocaleString("es-VE")}
               </span>
-              <span style={{ fontFamily: "var(--mono)", fontSize: "0.57rem", color: "var(--text-faint)", letterSpacing: "0.12em" }}>
+              <span className="font-mono text-[0.57rem] text-[var(--text-faint)] tracking-widest">
                 {s.label}
               </span>
             </div>
@@ -164,54 +106,36 @@ export default async function Home({
         </div>
       </div>
 
-      {/* ── EMERGENCY PHONES ── franja roja oscura */}
-      <div className="anim-4" style={{
-        background: "#1a0505", borderBottom: "1px solid #3a1010",
-      }}>
-        <div style={{
-          maxWidth: 1100, margin: "0 auto", padding: "1rem 1.5rem",
-          display: "flex", alignItems: "center", gap: "1.5rem", flexWrap: "wrap",
-        }}>
-          <span style={{
-            fontFamily: "var(--mono)", fontSize: "0.58rem", fontWeight: 600,
-            color: "#cc6060", letterSpacing: "0.16em", whiteSpace: "nowrap",
-            display: "flex", alignItems: "center", gap: 6,
-          }}>
+      {/* ── EMERGENCY PHONES ── */}
+      <div className="anim-4 bg-[#1a0505] border-b border-[#3a1010]">
+        <div className="mx-auto max-w-[1100px] px-4 sm:px-6 py-3 flex flex-wrap items-center gap-4">
+          <span className="font-mono text-[0.58rem] font-semibold text-[#cc6060] tracking-[0.16em] whitespace-nowrap flex items-center gap-1.5">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.71 3.53 2 2 0 0 1 3.68 1.36h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
             </svg>
             EMERGENCIAS
           </span>
-          <div style={{ width: 1, height: 20, background: "#3a1010" }} />
+          <div className="w-px h-5 bg-[#3a1010]" />
           {PHONES.map((p, i) => (
-            <a key={p.number} href={`tel:${p.number}`} style={{
-              display: "flex", alignItems: "baseline", gap: 5,
-              textDecoration: "none",
-            }}>
-              <span style={{ fontFamily: "var(--display)", fontSize: "1.5rem", fontWeight: 700, color: "#e8a0a0", lineHeight: 1 }}>
-                {p.number}
-              </span>
-              <span style={{ fontFamily: "var(--mono)", fontSize: "0.58rem", color: "#7a4040", letterSpacing: "0.06em" }}>
-                {p.label}
-              </span>
-              {i < PHONES.length - 1 && (
-                <span style={{ color: "#3a1010", marginLeft: 8, fontFamily: "var(--mono)", fontSize: "0.7rem" }}>·</span>
-              )}
+            <a key={p.number} href={`tel:${p.number}`} className="flex items-baseline gap-1 no-underline">
+              <span className="font-[var(--display)] text-2xl font-bold text-[#e8a0a0] leading-none">{p.number}</span>
+              <span className="font-mono text-[0.58rem] text-[#7a4040] tracking-wider">{p.label}</span>
+              {i < PHONES.length - 1 && <span className="text-[#3a1010] ml-2 font-mono text-sm">·</span>}
             </a>
           ))}
         </div>
       </div>
 
       {/* ── SEARCH + GRID ── */}
-      <div style={{ maxWidth: 1100, margin: "2.5rem auto 0", padding: "0 1.5rem" }}>
-        <div style={{ marginBottom: "1.5rem" }}>
+      <div className="mx-auto max-w-[1100px] px-4 sm:px-6 mt-10">
+        <div className="mb-6">
           <Suspense fallback={null}>
             <SearchBar />
           </Suspense>
         </div>
 
         {persons.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "4rem 0", color: "var(--text-faint)", fontFamily: "var(--mono)", fontSize: "0.85rem" }}>
+          <div className="text-center py-16 text-[var(--text-faint)] font-mono text-sm">
             {q ? `No se encontraron resultados para "${q}"` : "No hay registros aún. Sé el primero en reportar."}
           </div>
         ) : (
@@ -220,17 +144,12 @@ export default async function Home({
       </div>
 
       {/* ── FOOTER ── */}
-      <footer style={{
-        maxWidth: 1100, margin: "4rem auto 0", padding: "2rem 1.5rem 0",
-        borderTop: "1px solid var(--border)",
-        display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-        flexWrap: "wrap", gap: "1.5rem",
-      }}>
-        <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.08em", lineHeight: 1.8 }}>
+      <footer className="mx-auto max-w-[1100px] px-4 sm:px-6 mt-16 pt-8 border-t border-[var(--border)] flex flex-wrap justify-between items-start gap-6">
+        <p className="font-mono text-[0.6rem] text-[var(--text-faint)] tracking-wider leading-relaxed">
           © 2026 SOS VENEZUELA<br />
           HECHO POR VENEZOLANOS, PARA VENEZOLANOS
         </p>
-        <p style={{ fontFamily: "var(--sans)", fontSize: "0.78rem", color: "#4a4438", lineHeight: 1.65, maxWidth: 420, textAlign: "right" }}>
+        <p className="font-[var(--sans)] text-[0.78rem] text-[#4a4438] leading-relaxed max-w-sm">
           Ante una emergencia activa, llama a los organismos de rescate.
           Esta herramienta es ciudadana y no partidista.
         </p>

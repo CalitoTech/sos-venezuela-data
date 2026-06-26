@@ -6,25 +6,8 @@ import { useRouter } from "next/navigation";
 import { createPerson } from "@/lib/actions";
 import { PhotoUpload } from "@/components/PhotoUpload";
 
-const fieldStyle = {
-  width: "100%",
-  background: "var(--bg-input)",
-  border: "1px solid var(--border)",
-  borderRadius: 3,
-  color: "var(--text)",
-  fontFamily: "var(--mono)",
-  fontSize: "0.85rem",
-  padding: "0.6rem 0.8rem",
-} as React.CSSProperties;
-
-const labelStyle = {
-  display: "block",
-  fontFamily: "var(--mono)",
-  fontSize: "0.65rem",
-  letterSpacing: "0.1em",
-  color: "var(--text-faint)",
-  marginBottom: "0.4rem",
-} as React.CSSProperties;
+const field = "w-full bg-[var(--bg-input)] border border-[var(--border)] rounded text-[var(--text)] font-mono text-sm px-3 py-2 outline-none";
+const label = "block font-mono text-[0.65rem] tracking-widest text-[var(--text-faint)] mb-1.5";
 
 export default function AgregarPage() {
   const [photoUrl, setPhotoUrl] = useState("");
@@ -41,59 +24,57 @@ export default function AgregarPage() {
   }
 
   return (
-    <main style={{ minHeight: "100vh" }}>
-      <header style={{ borderBottom: "1px solid var(--border)", background: "#0d0d0d" }}>
-        <div style={{ maxWidth: 860, margin: "0 auto", padding: "0.75rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem" }}>
-          <Link href="/" style={{ fontFamily: "var(--mono)", fontSize: "0.75rem", color: "var(--text-dim)", textDecoration: "none" }}>
+    <main className="min-h-screen">
+      <header className="border-b border-[var(--border)] bg-[#0d0d0d]">
+        <div className="mx-auto max-w-[860px] px-4 sm:px-6 py-3 flex items-center gap-4 overflow-hidden">
+          <Link href="/" className="font-mono text-xs text-[var(--text-dim)] no-underline shrink-0">
             ← VOLVER
           </Link>
-          <span style={{ color: "var(--border)", fontSize: "0.75rem" }}>|</span>
-          <span style={{ fontFamily: "var(--display)", fontSize: "1.2rem", letterSpacing: "0.08em" }}>
+          <span className="text-[var(--border)] shrink-0">|</span>
+          <span className="font-[var(--display)] text-lg tracking-wider truncate">
             REPORTAR PERSONA DESAPARECIDA
           </span>
         </div>
       </header>
 
-      <div style={{ maxWidth: 860, margin: "0 auto", padding: "2rem 1.5rem" }}>
-        <div style={{
-          background: "var(--bg-card)", border: "1px solid var(--border)",
-          borderTop: "2px solid var(--red)", borderRadius: 4, padding: "2rem",
-        }}>
+      <div className="mx-auto max-w-[860px] px-4 sm:px-6 py-8">
+        <div className="bg-[var(--bg-card)] border border-[var(--border)] border-t-[var(--red)] border-t-2 rounded p-5 sm:p-8">
           <form onSubmit={handleSubmit}>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "2rem", alignItems: "flex-start" }}>
+            {/* Layout: foto + campos, se apila en móvil */}
+            <div className="flex flex-wrap gap-8 items-start">
 
-              {/* Columna izquierda: foto */}
-              <div style={{ flex: "0 0 180px" }}>
-                <p style={labelStyle}>FOTO</p>
+              {/* Foto */}
+              <div className="w-full sm:w-44 shrink-0">
+                <p className={label}>FOTO</p>
                 <PhotoUpload onUpload={setPhotoUrl} />
               </div>
 
-              {/* Columna derecha: campos */}
-              <div style={{ flex: "1 1 280px", minWidth: 0, display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+              {/* Campos */}
+              <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-                <div style={{ gridColumn: "1 / -1" }}>
-                  <label style={labelStyle}>NOMBRE COMPLETO *</label>
-                  <input name="full_name" required placeholder="Apellidos y nombres" style={{ ...fieldStyle, fontSize: "1rem" }} />
+                <div className="col-span-1 sm:col-span-2">
+                  <label className={label}>NOMBRE COMPLETO *</label>
+                  <input name="full_name" required placeholder="Apellidos y nombres" className={`${field} text-base`} />
                 </div>
 
                 <div>
-                  <label style={labelStyle}>CÉDULA DE IDENTIDAD</label>
-                  <input name="cedula" placeholder="Ej: 12345678" style={fieldStyle} />
+                  <label className={label}>CÉDULA DE IDENTIDAD</label>
+                  <input name="cedula" placeholder="Ej: 12345678" className={field} />
                 </div>
 
                 <div>
-                  <label style={labelStyle}>EDAD</label>
-                  <input name="age" type="number" min={0} max={130} placeholder="Años" style={fieldStyle} />
+                  <label className={label}>EDAD</label>
+                  <input name="age" type="number" min={0} max={130} placeholder="Años" className={field} />
                 </div>
 
                 <div>
-                  <label style={labelStyle}>FECHA DE NACIMIENTO</label>
-                  <input name="date_of_birth" type="date" style={fieldStyle} />
+                  <label className={label}>FECHA DE NACIMIENTO</label>
+                  <input name="date_of_birth" type="date" className={field} />
                 </div>
 
                 <div>
-                  <label style={labelStyle}>GÉNERO</label>
-                  <select name="gender" style={fieldStyle}>
+                  <label className={label}>GÉNERO</label>
+                  <select name="gender" className={field}>
                     <option value="">— seleccionar —</option>
                     <option value="male">Masculino</option>
                     <option value="female">Femenino</option>
@@ -101,58 +82,44 @@ export default function AgregarPage() {
                 </div>
 
                 <div>
-                  <label style={labelStyle}>ÚLTIMO LUGAR VISTO</label>
-                  <input name="last_seen_location" placeholder="Ciudad, sector, dirección..." style={fieldStyle} />
+                  <label className={label}>ÚLTIMO LUGAR VISTO</label>
+                  <input name="last_seen_location" placeholder="Ciudad, sector, dirección..." className={field} />
                 </div>
 
                 <div>
-                  <label style={labelStyle}>FECHA ÚLTIMO AVISTAMIENTO</label>
-                  <input name="last_seen_date" type="date" style={fieldStyle} />
+                  <label className={label}>FECHA ÚLTIMO AVISTAMIENTO</label>
+                  <input name="last_seen_date" type="date" className={field} />
                 </div>
 
-                <div style={{ gridColumn: "1 / -1" }}>
-                  <label style={labelStyle}>DESCRIPCIÓN FÍSICA</label>
-                  <textarea
-                    name="description"
-                    rows={3}
-                    placeholder="Rasgos físicos, ropa que llevaba, señas particulares..."
-                    style={{ ...fieldStyle, resize: "vertical" }}
-                  />
+                <div className="col-span-1 sm:col-span-2">
+                  <label className={label}>DESCRIPCIÓN FÍSICA</label>
+                  <textarea name="description" rows={3} placeholder="Rasgos físicos, ropa que llevaba, señas particulares..." className={`${field} resize-y`} />
                 </div>
 
-                {/* Sección contacto */}
-                <div style={{ gridColumn: "1 / -1", borderTop: "1px solid var(--border)", paddingTop: "1rem" }}>
-                  <p style={{ ...labelStyle, marginBottom: "1rem" }}>DATOS DE CONTACTO (QUIEN REPORTA)</p>
+                <div className="col-span-1 sm:col-span-2 border-t border-[var(--border)] pt-4">
+                  <p className={`${label} mb-4`}>DATOS DE CONTACTO (QUIEN REPORTA)</p>
                 </div>
 
                 <div>
-                  <label style={labelStyle}>NOMBRE DE CONTACTO</label>
-                  <input name="contact_name" placeholder="Nombre completo" style={fieldStyle} />
+                  <label className={label}>NOMBRE DE CONTACTO</label>
+                  <input name="contact_name" placeholder="Nombre completo" className={field} />
                 </div>
 
                 <div>
-                  <label style={labelStyle}>TELÉFONO</label>
-                  <input name="contact_phone" type="tel" placeholder="+58 ..." style={fieldStyle} />
+                  <label className={label}>TELÉFONO</label>
+                  <input name="contact_phone" type="tel" placeholder="+58 ..." className={field} />
                 </div>
 
-                <div style={{ gridColumn: "1 / -1" }}>
-                  <label style={labelStyle}>CORREO ELECTRÓNICO</label>
-                  <input name="contact_email" type="email" placeholder="correo@ejemplo.com" style={fieldStyle} />
+                <div className="col-span-1 sm:col-span-2">
+                  <label className={label}>CORREO ELECTRÓNICO</label>
+                  <input name="contact_email" type="email" placeholder="correo@ejemplo.com" className={field} />
                 </div>
 
-                <div style={{ gridColumn: "1 / -1", marginTop: "0.5rem" }}>
+                <div className="col-span-1 sm:col-span-2 mt-2">
                   <button
                     type="submit"
                     disabled={submitting}
-                    style={{
-                      width: "100%",
-                      background: submitting ? "#881111" : "var(--red)",
-                      color: "#fff", border: "none", borderRadius: 3,
-                      fontFamily: "var(--mono)", fontSize: "0.85rem",
-                      fontWeight: 600, letterSpacing: "0.1em",
-                      padding: "0.85rem", cursor: submitting ? "not-allowed" : "pointer",
-                      transition: "background 0.15s",
-                    }}
+                    className="w-full bg-[var(--red)] disabled:bg-[#881111] text-white border-none rounded font-mono text-sm font-semibold tracking-widest py-3 cursor-pointer disabled:cursor-not-allowed transition-colors"
                   >
                     {submitting ? "REGISTRANDO..." : "REGISTRAR PERSONA DESAPARECIDA"}
                   </button>

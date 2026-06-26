@@ -3,23 +3,24 @@ import { notFound } from "next/navigation";
 import { getPersonById, updateStatus } from "@/lib/actions";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PhotoZoom } from "@/components/PhotoZoom";
-import { UpdateStatusForm } from "@/components/UpdateStatusForm";
-import { formatDate, cleanText } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 function Row({ label, value }: { label: string; value?: string | null }) {
   if (!value) return null;
   return (
-    <div style={{ display: "flex", gap: "1rem", padding: "0.55rem 0", borderBottom: "1px solid var(--border)" }}>
-      <span style={{ fontFamily: "var(--mono)", fontSize: "0.65rem", color: "var(--text-faint)", letterSpacing: "0.1em", minWidth: 150, paddingTop: 2, flexShrink: 0 }}>
+    <div className="flex flex-col sm:flex-row sm:gap-4 py-2 border-b border-[var(--border)]">
+      <span className="font-mono text-[0.65rem] text-[var(--text-faint)] tracking-widest sm:min-w-[140px] shrink-0 pt-0.5">
         {label}
       </span>
-      <span style={{ fontFamily: "var(--mono)", fontSize: "0.82rem", color: "var(--text)" }}>
-        {value}
-      </span>
+      <span className="font-mono text-[0.82rem] text-[var(--text)]">{value}</span>
     </div>
   );
+}
+
+function formatDate(d: string | null) {
+  if (!d) return null;
+  return new Date(d).toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric" });
 }
 
 export default async function PersonaPage({ params }: { params: Promise<{ id: string }> }) {
@@ -29,118 +30,121 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
 
   async function handleStatusUpdate(formData: FormData) {
     "use server";
-    await updateStatus(
-      id,
-      formData.get("status") as string,
-      formData.get("status_notes") as string,
-      formData.get("found_by") as string | undefined,
-      formData.get("found_contact") as string | undefined,
-      formData.get("found_hospital") as string | undefined,
-    );
+    await updateStatus(id, formData.get("status") as string, formData.get("status_notes") as string);
   }
 
   return (
-    <main style={{ minHeight: "100vh" }}>
-      <header style={{ borderBottom: "1px solid var(--border)", background: "#0d0d0d" }}>
-        <div style={{ maxWidth: 960, margin: "0 auto", padding: "0.75rem 1.5rem", display: "flex", alignItems: "center", gap: "1rem" }}>
-          <Link href="/" style={{ fontFamily: "var(--mono)", fontSize: "0.75rem", color: "var(--text-dim)", textDecoration: "none" }}>
+    <main className="min-h-screen">
+      <header className="border-b border-[var(--border)] bg-[#0d0d0d]">
+        <div className="mx-auto max-w-[960px] px-4 sm:px-6 py-3 flex items-center gap-4">
+          <Link href="/" className="font-mono text-xs text-[var(--text-dim)] no-underline shrink-0">
             ← VOLVER
           </Link>
-          <span style={{ color: "var(--border)" }}>|</span>
-          <span style={{ fontFamily: "var(--mono)", fontSize: "0.65rem", color: "var(--text-faint)", letterSpacing: "0.08em" }}>
+          <span className="text-[var(--border)] shrink-0">|</span>
+          <span className="font-mono text-[0.65rem] text-[var(--text-faint)] tracking-wider">
             FICHA DE PERSONA
           </span>
         </div>
       </header>
 
-      <div style={{ maxWidth: 960, margin: "0 auto", padding: "2rem 1.5rem" }}>
-        {/* 3-column grid: foto | datos principales | datos secundarios + estado */}
-        <div className="persona-grid">
+      <div className="mx-auto max-w-[960px] px-4 sm:px-6 py-8">
+        {/* Grid principal: se apila en móvil, 3 cols en desktop */}
+        <div className="flex flex-col sm:grid sm:grid-cols-[180px_1fr_1fr] gap-5 items-start">
 
           {/* Columna 1: foto + estado */}
-          <div className="persona-photo-col" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-            {person.photo_url ? (
-              <PhotoZoom src={person.photo_url} alt={person.full_name} />
-            ) : (
-              <div style={{
-                width: "100%", aspectRatio: "3/4", borderRadius: 3,
-                background: "#1a1a1a", border: "1px solid var(--border)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                color: "var(--text-faint)", fontSize: "3rem",
-              }}>
-                ?
-              </div>
-            )}
-            <StatusBadge status={person.status} />
-            {person.status_notes && (
-              <p style={{ fontFamily: "var(--mono)", fontSize: "0.68rem", color: "var(--text-dim)", lineHeight: 1.6 }}>
-                {person.status_notes}
-              </p>
-            )}
+          <div className="flex sm:flex-col flex-row gap-4 sm:gap-4 items-start">
+            <div className="w-32 sm:w-full shrink-0">
+              {person.photo_url ? (
+                <PhotoZoom src={person.photo_url} alt={person.full_name} />
+              ) : (
+                <div className="w-full aspect-[3/4] rounded bg-[#1a1a1a] border border-[var(--border)] flex items-center justify-center text-[var(--text-faint)] text-5xl">
+                  ?
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-3 pt-1">
+              <StatusBadge status={person.status} />
+              {person.status_notes && (
+                <p className="font-mono text-[0.68rem] text-[var(--text-dim)] leading-relaxed">
+                  {person.status_notes}
+                </p>
+              )}
+            </div>
           </div>
 
           {/* Columna 2: nombre + identidad + avistamiento + contacto */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
-            <div style={{
-              background: "var(--bg-card)",
-              border: "1px solid var(--border)",
-              borderTop: person.status === "missing" ? "2px solid var(--red)" : "2px solid var(--border-hi)",
-              borderRadius: 3, padding: "1rem",
-            }}>
-              <h1 style={{ fontFamily: "var(--display)", fontSize: "2rem", letterSpacing: "0.05em", lineHeight: 1, marginBottom: "0.25rem" }}>
+          <div className="flex flex-col gap-5">
+            <div className={`bg-[var(--bg-card)] border border-[var(--border)] rounded p-4 ${person.status === "missing" ? "border-t-[var(--red)]" : "border-t-[var(--border-hi)]"} border-t-2`}>
+              <h1 className="font-[var(--display)] text-3xl tracking-wider leading-tight">
                 {person.full_name.toUpperCase()}
               </h1>
             </div>
 
-            <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>
-              <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "0.5rem" }}>IDENTIDAD</p>
-              <Row label="CÉDULA"       value={person.cedula} />
-              <Row label="FECHA NAC."   value={formatDate(person.date_of_birth, "long")} />
-              <Row label="EDAD"         value={person.age != null ? `${person.age} años` : null} />
-              <Row label="GÉNERO"       value={person.gender} />
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded p-4">
+              <p className="font-mono text-[0.6rem] text-[var(--text-faint)] tracking-widest mb-3">IDENTIDAD</p>
+              <Row label="CÉDULA"     value={person.cedula} />
+              <Row label="FECHA NAC." value={formatDate(person.date_of_birth)} />
+              <Row label="EDAD"       value={person.age ? `${person.age} años` : null} />
+              <Row label="GÉNERO"     value={person.gender} />
             </div>
 
-            <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>
-              <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "0.5rem" }}>ÚLTIMO AVISTAMIENTO</p>
-              <Row label="LUGAR"        value={cleanText(person.last_seen_location)} />
-              <Row label="FECHA"        value={formatDate(person.last_seen_date, "long")} />
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded p-4">
+              <p className="font-mono text-[0.6rem] text-[var(--text-faint)] tracking-widest mb-3">ÚLTIMO AVISTAMIENTO</p>
+              <Row label="LUGAR" value={person.last_seen_location} />
+              <Row label="FECHA" value={formatDate(person.last_seen_date)} />
             </div>
 
             {(person.contact_name || person.contact_phone || person.contact_email) && (
-              <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>
-                <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "0.5rem" }}>CONTACTO</p>
-                <Row label="NOMBRE"     value={person.contact_name} />
-                <Row label="TELÉFONO"   value={person.contact_phone} />
-                <Row label="CORREO"     value={person.contact_email} />
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded p-4">
+                <p className="font-mono text-[0.6rem] text-[var(--text-faint)] tracking-widest mb-3">CONTACTO</p>
+                <Row label="NOMBRE"   value={person.contact_name} />
+                <Row label="TELÉFONO" value={person.contact_phone} />
+                <Row label="CORREO"   value={person.contact_email} />
               </div>
             )}
           </div>
 
           {/* Columna 3: descripción + registro + actualizar estado */}
-          <div className="persona-wide" style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          <div className="flex flex-col gap-5">
             {person.description && (
-              <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>
-                <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "0.75rem" }}>DESCRIPCIÓN FÍSICA</p>
-                <p style={{ fontFamily: "var(--sans)", fontSize: "0.88rem", color: "var(--text)", lineHeight: 1.75 }}>{person.description}</p>
+              <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded p-4">
+                <p className="font-mono text-[0.6rem] text-[var(--text-faint)] tracking-widest mb-3">DESCRIPCIÓN FÍSICA</p>
+                <p className="font-[var(--sans)] text-sm text-[var(--text)] leading-relaxed">{person.description}</p>
               </div>
             )}
 
-            <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>
-              <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "0.5rem" }}>REGISTRO</p>
-              <Row label="FUENTE"       value={person.reported_by_source === "manual" ? "Reporte manual" : person.reported_by_source} />
-              <Row label="REGISTRADO"   value={formatDate(person.first_seen_at, "long")} />
-              <Row label="ACTUALIZADO"  value={formatDate(person.updated_at, "long")} />
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded p-4">
+              <p className="font-mono text-[0.6rem] text-[var(--text-faint)] tracking-widest mb-3">REGISTRO</p>
+              <Row label="FUENTE"      value={person.reported_by_source === "manual" ? "Reporte manual" : person.reported_by_source} />
+              <Row label="REGISTRADO"  value={formatDate(person.first_seen_at)} />
+              <Row label="ACTUALIZADO" value={formatDate(person.updated_at)} />
             </div>
 
-            <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>
-              <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "1rem" }}>
-                ACTUALIZAR ESTADO
-              </p>
-              <UpdateStatusForm
-                currentStatus={person.status}
-                currentNotes={person.status_notes}
-                action={handleStatusUpdate}
-              />
+            <div className="bg-[var(--bg-card)] border border-[var(--border)] rounded p-4">
+              <p className="font-mono text-[0.6rem] text-[var(--text-faint)] tracking-widest mb-4">ACTUALIZAR ESTADO</p>
+              <form action={handleStatusUpdate} className="flex flex-col gap-3">
+                <select
+                  name="status"
+                  defaultValue={person.status}
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded text-[var(--text)] font-mono text-sm px-3 py-2"
+                >
+                  <option value="missing">No localizado</option>
+                  <option value="found">Localizado</option>
+                </select>
+                <textarea
+                  name="status_notes"
+                  rows={2}
+                  defaultValue={person.status_notes ?? ""}
+                  placeholder="Notas sobre el cambio de estado..."
+                  className="w-full bg-[var(--bg-input)] border border-[var(--border)] rounded text-[var(--text)] font-mono text-sm px-3 py-2 resize-y"
+                />
+                <button
+                  type="submit"
+                  className="w-full bg-transparent border border-[var(--border-hi)] rounded text-[var(--text)] font-mono text-xs font-semibold tracking-wider py-2 cursor-pointer"
+                >
+                  GUARDAR CAMBIO
+                </button>
+              </form>
             </div>
           </div>
 
