@@ -69,3 +69,116 @@ body::before {
 .anim-3 { animation: fade-in-up 0.5s ease both 0.25s; }
 .anim-4 { animation: fade-in-up 0.5s ease both 0.35s; }
 .anim-5 { animation: fade-in-up 0.5s ease both 0.45s; }
+
+/* ====================================================================
+   Responsive layout
+   Inline styles can't carry media queries, so the layout-critical grids
+   live here as semantic classes. Decoration stays inline at call sites.
+   Breakpoints: 900 (tablet) · 720/600 (large phone) · 560/480 (phone).
+   ==================================================================== */
+
+/* Home hero: body copy + CTA side by side, stacks on narrow screens */
+.hero-body {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 3rem;
+  align-items: start;
+  padding-left: calc(1.5rem + 3px);
+  margin-bottom: 3rem;
+}
+@media (max-width: 720px) {
+  .hero-body {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    padding-left: 1.5rem;
+    margin-bottom: 2rem;
+  }
+}
+
+/* Newspaper-style stats bar */
+.stats-bar { display: flex; align-items: stretch; }
+.stats-cell {
+  flex: 1;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 1.25rem 1.5rem;
+  border-right: 1px solid var(--border);
+}
+.stats-cell:last-child { border-right: none; }
+.stats-num {
+  font-family: var(--display);
+  font-size: clamp(1.7rem, 7vw, 2.6rem);
+  font-weight: 700;
+  line-height: 1;
+}
+@media (max-width: 560px) {
+  .stats-bar { flex-direction: column; }
+  .stats-cell {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 0.85rem 0;
+  }
+  .stats-cell:last-child { border-bottom: none; }
+}
+
+/* Header secondary tag — drop on the smallest screens */
+@media (max-width: 480px) {
+  .header-sub { display: none; }
+}
+
+/* Person detail: photo | identity | secondary */
+.persona-grid {
+  display: grid;
+  grid-template-columns: 180px 1fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .persona-grid { grid-template-columns: 200px 1fr; }
+  .persona-grid > .persona-wide { grid-column: 1 / -1; }
+}
+@media (max-width: 600px) {
+  .persona-grid { grid-template-columns: 1fr; }
+  .persona-grid > .persona-photo-col { max-width: 280px; }
+}
+
+/* Report form: photo column | field grid */
+.form-grid {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+@media (max-width: 720px) {
+  .form-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+}
+@media (max-width: 480px) {
+  .field-grid { grid-template-columns: 1fr; }
+}
+
+/* ====================================================================
+   Accessibility quality floor
+   ==================================================================== */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--red-hi);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -55,10 +55,10 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
 
       <div style={{ maxWidth: 960, margin: "0 auto", padding: "2rem 1.5rem" }}>
         {/* 3-column grid: foto | datos principales | datos secundarios + estado */}
-        <div style={{ display: "grid", gridTemplateColumns: "180px 1fr 1fr", gap: "1.25rem", alignItems: "start" }}>
+        <div className="persona-grid">
 
           {/* Columna 1: foto + estado */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+          <div className="persona-photo-col" style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
             {person.photo_url ? (
               <PhotoZoom src={person.photo_url} alt={person.full_name} />
             ) : (
@@ -117,7 +117,7 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
           </div>
 
           {/* Columna 3: descripción + registro + actualizar estado */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
+          <div className="persona-wide" style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {person.description && (
               <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>
                 <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "0.75rem" }}>DESCRIPCIÓN FÍSICA</p>

@@ -15,7 +15,6 @@ const fieldStyle = {
   fontFamily: "var(--mono)",
   fontSize: "0.85rem",
   padding: "0.6rem 0.8rem",
-  outline: "none",
 } as React.CSSProperties;
 
 const labelStyle = {
@@ -61,7 +60,7 @@ export default function AgregarPage() {
           borderTop: "2px solid var(--red)", borderRadius: 4, padding: "2rem",
         }}>
           <form onSubmit={handleSubmit}>
-            <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: "2rem", alignItems: "start" }}>
+            <div className="form-grid">
 
               {/* Columna izquierda: foto */}
               <div>
@@ -70,7 +69,7 @@ export default function AgregarPage() {
               </div>
 
               {/* Columna derecha: campos */}
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "1.25rem" }}>
+              <div className="field-grid">
 
                 <div style={{ gridColumn: "1 / -1" }}>
                   <label style={labelStyle}>NOMBRE COMPLETO *</label>

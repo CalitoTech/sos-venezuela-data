@@ -41,7 +41,7 @@ export default async function Home({
             <span style={{ fontFamily: "var(--mono)", fontSize: "0.8rem", fontWeight: 600, letterSpacing: "0.12em", color: "var(--text)" }}>
               SOS VENEZUELA
             </span>
-            <span style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.06em", borderLeft: "1px solid var(--border)", paddingLeft: "0.75rem" }}>
+            <span className="header-sub" style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.06em", borderLeft: "1px solid var(--border)", paddingLeft: "0.75rem" }}>
               DESAPARECIDOS
             </span>
           </div>
@@ -91,11 +91,7 @@ export default async function Home({
         </div>
 
         {/* Body copy + CTA side by side */}
-        <div className="anim-3" style={{
-          display: "grid", gridTemplateColumns: "1fr auto", gap: "3rem", alignItems: "start",
-          paddingLeft: "calc(1.5rem + 3px)",
-          marginBottom: "3rem",
-        }}>
+        <div className="anim-3 hero-body">
           <div>
             <p style={{
               fontFamily: "var(--sans)", fontSize: "1rem", lineHeight: 1.75,
@@ -138,22 +134,14 @@ export default async function Home({
         borderTop: "1px solid var(--border)", borderBottom: "1px solid var(--border)",
         background: "#0e0e0e",
       }}>
-        <div style={{
-          maxWidth: 1100, margin: "0 auto", padding: "0 1.5rem",
-          display: "flex", alignItems: "stretch",
-        }}>
+        <div className="stats-bar" style={{ maxWidth: 1100, margin: "0 auto", padding: "0 1.5rem" }}>
           {[
             { label: "PERSONAS REPORTADAS", value: stats?.total   ?? 0, color: "#f5f0e8" },
             { label: "AÚN SIN CONTACTO",    value: stats?.missing ?? 0, color: "var(--red)" },
             { label: "LOCALIZADAS",          value: stats?.found  ?? 0, color: "var(--green)" },
-          ].map((s, i) => (
-            <div key={s.label} style={{
-              flex: 1,
-              padding: "1.25rem 1.5rem",
-              borderRight: i < 2 ? "1px solid var(--border)" : "none",
-              display: "flex", alignItems: "baseline", gap: "0.75rem",
-            }}>
-              <span style={{ fontFamily: "var(--display)", fontSize: "2.6rem", fontWeight: 700, color: s.color, lineHeight: 1 }}>
+          ].map((s) => (
+            <div key={s.label} className="stats-cell">
+              <span className="stats-num" style={{ color: s.color }}>
                 {s.value.toLocaleString("es-VE")}
               </span>
               <span style={{ fontFamily: "var(--mono)", fontSize: "0.57rem", color: "var(--text-faint)", letterSpacing: "0.12em" }}>
