@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
-import { searchPersons, getStats } from "@/lib/actions";
-import { PersonCard } from "@/components/PersonCard";
+import { searchPersons } from "@/lib/actions";
+import { countPersons, getStats } from "@/lib/queries";
+import { ResultsGrid } from "@/components/ResultsGrid";
 import { SearchBar } from "@/components/SearchBar";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,11 @@ export default async function Home({
   searchParams: Promise<{ q?: string }>;
 }) {
   const { q = "" } = await searchParams;
-  const [persons, stats] = await Promise.all([searchPersons(q), getStats()]);
+  const [persons, total, stats] = await Promise.all([
+    searchPersons(q),
+    countPersons(q),
+    getStats(),
+  ]);
 
   return (
     <main style={{ minHeight: "100vh", padding: "0 0 5rem" }}>
@@ -210,21 +215,7 @@ export default async function Home({
             {q ? `No se encontraron resultados para "${q}"` : "No hay registros aún. Sé el primero en reportar."}
           </div>
         ) : (
-          <>
-            <p style={{ fontFamily: "var(--mono)", fontSize: "0.65rem", color: "var(--text-faint)", letterSpacing: "0.1em", marginBottom: "1rem" }}>
-              {persons.length} REGISTRO{persons.length !== 1 ? "S" : ""}{q ? ` PARA "${q.toUpperCase()}"` : ""}
-            </p>
-            <div style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-              gap: "1rem",
-              alignItems: "stretch",
-            }}>
-              {persons.map((p, i) => (
-                <PersonCard key={p.id} p={p} index={i} />
-              ))}
-            </div>
-          </>
+          <ResultsGrid key={q} initial={persons} total={total} query={q} />
         )}
       </div>
 

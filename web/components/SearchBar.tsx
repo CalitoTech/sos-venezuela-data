@@ -1,21 +1,36 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useTransition, useState } from "react";
+import { useTransition, useState, useRef, useEffect } from "react";
+
+const DEBOUNCE_MS = 350;
 
 export function SearchBar() {
   const router = useRouter();
   const params = useSearchParams();
   const [value, setValue] = useState(params.get("q") ?? "");
   const [pending, startTransition] = useTransition();
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Clear any pending navigation on unmount so a debounced replace can't fire
+  // after the component is gone.
+  useEffect(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
     const v = e.target.value;
     setValue(v);
-    startTransition(() => {
-      const url = v.trim() ? `/?q=${encodeURIComponent(v.trim())}` : "/";
-      router.replace(url, { scroll: false });
-    });
+
+    // Debounce the server round-trip: navigate only once the user pauses
+    // typing, instead of firing a query on every keystroke.
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = setTimeout(() => {
+      startTransition(() => {
+        const url = v.trim() ? `/?q=${encodeURIComponent(v.trim())}` : "/";
+        router.replace(url, { scroll: false });
+      });
+    }, DEBOUNCE_MS);
   }
 
   return (

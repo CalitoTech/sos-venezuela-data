@@ -4,6 +4,7 @@ import { getPersonById, updateStatus } from "@/lib/actions";
 import { StatusBadge } from "@/components/StatusBadge";
 import { PhotoZoom } from "@/components/PhotoZoom";
 import { UpdateStatusForm } from "@/components/UpdateStatusForm";
+import { formatDate, cleanText } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
@@ -19,11 +20,6 @@ function Row({ label, value }: { label: string; value?: string | null }) {
       </span>
     </div>
   );
-}
-
-function formatDate(d: string | null) {
-  if (!d) return null;
-  return new Date(d).toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric" });
 }
 
 export default async function PersonaPage({ params }: { params: Promise<{ id: string }> }) {
@@ -99,15 +95,15 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
             <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>
               <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "0.5rem" }}>IDENTIDAD</p>
               <Row label="CÉDULA"       value={person.cedula} />
-              <Row label="FECHA NAC."   value={formatDate(person.date_of_birth)} />
-              <Row label="EDAD"         value={person.age ? `${person.age} años` : null} />
+              <Row label="FECHA NAC."   value={formatDate(person.date_of_birth, "long")} />
+              <Row label="EDAD"         value={person.age != null ? `${person.age} años` : null} />
               <Row label="GÉNERO"       value={person.gender} />
             </div>
 
             <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>
               <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "0.5rem" }}>ÚLTIMO AVISTAMIENTO</p>
-              <Row label="LUGAR"        value={person.last_seen_location} />
-              <Row label="FECHA"        value={formatDate(person.last_seen_date)} />
+              <Row label="LUGAR"        value={cleanText(person.last_seen_location)} />
+              <Row label="FECHA"        value={formatDate(person.last_seen_date, "long")} />
             </div>
 
             {(person.contact_name || person.contact_phone || person.contact_email) && (
@@ -132,8 +128,8 @@ export default async function PersonaPage({ params }: { params: Promise<{ id: st
             <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>
               <p style={{ fontFamily: "var(--mono)", fontSize: "0.6rem", color: "var(--text-faint)", letterSpacing: "0.12em", marginBottom: "0.5rem" }}>REGISTRO</p>
               <Row label="FUENTE"       value={person.reported_by_source === "manual" ? "Reporte manual" : person.reported_by_source} />
-              <Row label="REGISTRADO"   value={formatDate(person.first_seen_at)} />
-              <Row label="ACTUALIZADO"  value={formatDate(person.updated_at)} />
+              <Row label="REGISTRADO"   value={formatDate(person.first_seen_at, "long")} />
+              <Row label="ACTUALIZADO"  value={formatDate(person.updated_at, "long")} />
             </div>
 
             <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: 3, padding: "1rem" }}>

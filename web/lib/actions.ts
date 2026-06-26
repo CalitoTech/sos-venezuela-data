@@ -1,27 +1,35 @@
 "use server";
 
 import { pool } from "./db";
-import { revalidatePath } from "next/cache";
+import type { MissingPerson } from "./db";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { publishToAll, type PublishInput } from "./publishers";
+import { PAGE_SIZE, PERSONS_TAG } from "./queries";
 
-export async function searchPersons(query: string) {
+export async function searchPersons(
+  query: string,
+  offset = 0
+): Promise<MissingPerson[]> {
   const client = await pool.connect();
   try {
     if (!query.trim()) {
-      const res = await client.query(
-        `SELECT * FROM missing_persons ORDER BY first_seen_at DESC LIMIT 100`
+      const res = await client.query<MissingPerson>(
+        `SELECT * FROM missing_persons
+         ORDER BY first_seen_at DESC
+         LIMIT $1 OFFSET $2`,
+        [PAGE_SIZE, offset]
       );
       return res.rows;
     }
-    const res = await client.query(
+    const res = await client.query<MissingPerson>(
       `SELECT *, similarity(full_name, $1) AS sim
        FROM missing_persons
        WHERE cedula ILIKE $2
           OR full_name % $1
           OR full_name ILIKE $2
        ORDER BY sim DESC, first_seen_at DESC
-       LIMIT 100`,
-      [query, `%${query}%`]
+       LIMIT $3 OFFSET $4`,
+      [query, `%${query}%`, PAGE_SIZE, offset]
     );
     return res.rows;
   } finally {
@@ -37,22 +45,6 @@ export async function getPersonById(id: string) {
       [id]
     );
     return res.rows[0] ?? null;
-  } finally {
-    client.release();
-  }
-}
-
-export async function getStats() {
-  const client = await pool.connect();
-  try {
-    const res = await client.query(
-      `SELECT
-        COUNT(*) FILTER (WHERE status = 'missing') AS missing,
-        COUNT(*) FILTER (WHERE status = 'found')   AS found,
-        COUNT(*)                                    AS total
-       FROM missing_persons`
-    );
-    return res.rows[0];
   } finally {
     client.release();
   }
@@ -115,6 +107,7 @@ export async function createPerson(formData: FormData) {
 
   await publishToAll(personId, input);
 
+  revalidateTag(PERSONS_TAG, "max");
   revalidatePath("/");
 }
 
@@ -160,6 +153,7 @@ export async function updateStatus(
     await publishToAll(id, input);
   }
 
+  revalidateTag(PERSONS_TAG, "max");
   revalidatePath("/");
   revalidatePath(`/persona/${id}`);
 }

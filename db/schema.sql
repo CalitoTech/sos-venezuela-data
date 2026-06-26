@@ -81,6 +81,9 @@ CREATE INDEX IF NOT EXISTS idx_mp_full_name       ON missing_persons USING gin (
 CREATE INDEX IF NOT EXISTS idx_mp_status          ON missing_persons (status);
 CREATE INDEX IF NOT EXISTS idx_mp_last_seen_date  ON missing_persons (last_seen_date DESC NULLS LAST);
 CREATE INDEX IF NOT EXISTS idx_mp_updated_at      ON missing_persons (updated_at DESC);
+-- Default home ordering: ORDER BY first_seen_at DESC. Without this index a full
+-- sort of the table runs on every unfiltered page load.
+CREATE INDEX IF NOT EXISTS idx_mp_first_seen_at   ON missing_persons (first_seen_at DESC);
 
 -- -------------------------------------------------------------
 -- Relación persona <-> fuente
