@@ -19,166 +19,177 @@ DATABASE_URL = os.environ["DATABASE_URL"]
 SCRAPERS = os.path.join(os.path.dirname(__file__), "..", "scrapers")
 
 
+def _csv(path: str) -> bool:
+    """True si el archivo existe y tiene contenido (no solo el header)."""
+    try:
+        return os.path.getsize(path) > 0
+    except OSError:
+        return False
+
+
 def normalize(con: duckdb.DuckDBPyConnection) -> None:
-    con.execute(f"""
-    CREATE OR REPLACE VIEW normalized AS
+    parts = []
 
-    -- ayudavenezuela
-    SELECT
-        nombre                                                          AS full_name,
-        NULLIF(TRIM(cedula), '')                                        AS cedula,
-        TRY_CAST(edad AS SMALLINT)                                      AS age,
-        NULL::VARCHAR                                                   AS gender,
-        municipio                                                       AS last_seen_location,
-        NULL::DATE                                                      AS last_seen_date,
-        CONCAT_WS(' | ', NULLIF(descripcion,''), NULLIF(nota,''))       AS description,
-        autor                                                           AS contact_name,
-        NULLIF(contacto, '')                                            AS contact_phone,
-        NULL::VARCHAR                                                   AS contact_email,
-        NULL::VARCHAR                                                   AS photo_url,
-        CASE UPPER(TRIM(estado_persona))
-            WHEN 'DESAPARECIDO' THEN 'missing'
-            WHEN 'ENCONTRADO'   THEN 'found'
-            ELSE 'missing'
-        END                                                             AS status,
-        'ayudavenezuela'                                                AS source_name,
-        id                                                              AS source_record_id,
-        NULL::VARCHAR                                                   AS source_url,
-        NULLIF(TRIM(localizado_por), '')                                AS found_by,
-        NULLIF(TRIM(localizado_contacto), '')                           AS found_contact,
-        NULL::VARCHAR                                                   AS found_hospital
-    FROM read_csv_auto('{SCRAPERS}/ayudavenezuela/personas.csv')
+    if _csv(f"{SCRAPERS}/ayudavenezuela/personas.csv"):
+        parts.append(f"""
+        SELECT
+            nombre                                                          AS full_name,
+            NULLIF(TRIM(cedula), '')                                        AS cedula,
+            TRY_CAST(edad AS SMALLINT)                                      AS age,
+            NULL::VARCHAR                                                   AS gender,
+            municipio                                                       AS last_seen_location,
+            NULL::DATE                                                      AS last_seen_date,
+            CONCAT_WS(' | ', NULLIF(descripcion,''), NULLIF(nota,''))       AS description,
+            autor                                                           AS contact_name,
+            NULLIF(contacto, '')                                            AS contact_phone,
+            NULL::VARCHAR                                                   AS contact_email,
+            NULL::VARCHAR                                                   AS photo_url,
+            CASE UPPER(TRIM(estado_persona))
+                WHEN 'DESAPARECIDO' THEN 'missing'
+                WHEN 'ENCONTRADO'   THEN 'found'
+                ELSE 'missing'
+            END                                                             AS status,
+            'ayudavenezuela'                                                AS source_name,
+            id                                                              AS source_record_id,
+            NULL::VARCHAR                                                   AS source_url,
+            NULLIF(TRIM(localizado_por), '')                                AS found_by,
+            NULLIF(TRIM(localizado_contacto), '')                           AS found_contact,
+            NULL::VARCHAR                                                   AS found_hospital
+        FROM read_csv_auto('{SCRAPERS}/ayudavenezuela/personas.csv')""")
 
-    UNION ALL
+    if _csv(f"{SCRAPERS}/desaparecidosapi/personas.csv"):
+        parts.append(f"""
+        SELECT
+            nombre,
+            NULL,
+            TRY_CAST(edad AS SMALLINT),
+            NULL,
+            NULLIF(ubicacion, ''),
+            TRY_CAST(fecha AS DATE),
+            NULLIF(descripcion, ''),
+            NULL,
+            NULLIF(contacto, ''),
+            NULL,
+            NULLIF(foto, ''),
+            CASE LOWER(TRIM(estado))
+                WHEN 'sin-contacto' THEN 'missing'
+                WHEN 'localizado'   THEN 'found'
+                ELSE 'missing'
+            END,
+            'desaparecidosapi', id, NULL,
+            NULLIF(TRIM(localizado_por), ''),
+            NULLIF(TRIM(localizado_contacto), ''),
+            NULL
+        FROM read_csv_auto('{SCRAPERS}/desaparecidosapi/personas.csv')""")
 
-    -- desaparecidosapi
-    SELECT
-        nombre,
-        NULL,
-        TRY_CAST(edad AS SMALLINT),
-        NULL,
-        NULLIF(ubicacion, ''),
-        TRY_CAST(fecha AS DATE),
-        NULLIF(descripcion, ''),
-        NULL,
-        NULLIF(contacto, ''),
-        NULL,
-        NULLIF(foto, ''),
-        CASE LOWER(TRIM(estado))
-            WHEN 'sin-contacto' THEN 'missing'
-            WHEN 'localizado'   THEN 'found'
-            ELSE 'missing'
-        END,
-        'desaparecidosapi', id, NULL,
-        NULLIF(TRIM(localizado_por), ''),
-        NULLIF(TRIM(localizado_contacto), ''),
-        NULL
-    FROM read_csv_auto('{SCRAPERS}/desaparecidosapi/personas.csv')
+    if _csv(f"{SCRAPERS}/encuentralos/personas.csv"):
+        parts.append(f"""
+        SELECT
+            nombre,
+            NULLIF(TRIM(cedula), ''),
+            TRY_CAST(edad AS SMALLINT),
+            CASE LOWER(TRIM(sexo))
+                WHEN 'masculino' THEN 'male'
+                WHEN 'femenino'  THEN 'female'
+            END,
+            NULLIF(ultima_ubicacion, ''),
+            TRY_CAST(ultima_vez AS DATE),
+            NULLIF(descripcion, ''),
+            NULL,
+            NULLIF(reporta_contacto, ''),
+            NULL,
+            NULLIF(foto, ''),
+            CASE LOWER(TRIM(estado))
+                WHEN 'desaparecido' THEN 'missing'
+                WHEN 'localizado'   THEN 'found'
+                ELSE 'missing'
+            END,
+            'encuentralos', id, NULL,
+            NULLIF(TRIM(pv_por), ''),
+            NULLIF(TRIM(pv_contacto), ''),
+            NULLIF(TRIM(pv_lugar), '')
+        FROM read_csv_auto('{SCRAPERS}/encuentralos/personas.csv')""")
 
-    UNION ALL
+    if _csv(f"{SCRAPERS}/venezuelareportaorg/personas.csv"):
+        parts.append(f"""
+        SELECT
+            nombre,
+            NULL,
+            NULL,
+            NULL,
+            NULLIF(ubicacion, ''),
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            NULLIF(foto_url, ''),
+            CASE TRIM(estado)
+                WHEN 'Se busca'   THEN 'missing'
+                WHEN 'Encontrado' THEN 'found'
+                ELSE 'missing'
+            END,
+            'venezuelareportaorg', id, url,
+            NULL, NULL, NULL
+        FROM read_csv_auto('{SCRAPERS}/venezuelareportaorg/personas.csv')""")
 
-    -- encuentralos
-    SELECT
-        nombre,
-        NULLIF(TRIM(cedula), ''),
-        TRY_CAST(edad AS SMALLINT),
-        CASE LOWER(TRIM(sexo))
-            WHEN 'masculino' THEN 'male'
-            WHEN 'femenino'  THEN 'female'
-        END,
-        NULLIF(ultima_ubicacion, ''),
-        TRY_CAST(ultima_vez AS DATE),
-        NULLIF(descripcion, ''),
-        NULL,
-        NULLIF(reporta_contacto, ''),
-        NULL,
-        NULLIF(foto, ''),
-        CASE LOWER(TRIM(estado))
-            WHEN 'desaparecido' THEN 'missing'
-            WHEN 'localizado'   THEN 'found'
-            ELSE 'missing'
-        END,
-        'encuentralos', id, NULL,
-        NULLIF(TRIM(pv_por), ''),
-        NULLIF(TRIM(pv_contacto), ''),
-        NULLIF(TRIM(pv_lugar), '')
-    FROM read_csv_auto('{SCRAPERS}/encuentralos/personas.csv')
+    if _csv(f"{SCRAPERS}/venezuelatebusca/personas.csv"):
+        parts.append(f"""
+        SELECT
+            NULLIF(TRIM(first_name || ' ' || last_name), ''),
+            NULLIF(TRIM(CAST(national_id AS VARCHAR)), ''),
+            TRY_CAST(age AS SMALLINT),
+            CASE LOWER(TRIM(gender))
+                WHEN 'masculino' THEN 'male'
+                WHEN 'femenino'  THEN 'female'
+            END,
+            NULLIF(last_seen_location, ''),
+            NULL,
+            NULLIF(description, ''),
+            NULLIF(reporter_name, ''),
+            NULLIF(reporter_phone, ''),
+            NULLIF(reporter_email, ''),
+            NULL,
+            CASE LOWER(TRIM(status))
+                WHEN 'missing' THEN 'missing'
+                WHEN 'found'   THEN 'found'
+                ELSE 'missing'
+            END,
+            'venezuelatebusca', id, NULL,
+            NULLIF(found_notes, ''),
+            NULL,
+            NULLIF(hospital_name, '')
+        FROM read_csv_auto('{SCRAPERS}/venezuelatebusca/personas.csv')""")
 
-    UNION ALL
+    if _csv(f"{SCRAPERS}/pacienteshospitales/pacientes.csv"):
+        parts.append(f"""
+        SELECT
+            nombre,
+            NULL,
+            TRY_CAST(edad AS SMALLINT),
+            NULL,
+            NULL,
+            NULL,
+            NULLIF(notas, ''),
+            NULL,
+            NULL,
+            NULL,
+            NULL,
+            'missing',
+            'pacienteshospitales', id, NULL,
+            NULLIF(TRIM(reportado_por), ''),
+            NULL,
+            NULLIF(TRIM(CONCAT_WS(', ', NULLIF(hospital,''), NULLIF(ciudad,''))), '')
+        FROM read_csv_auto('{SCRAPERS}/pacienteshospitales/pacientes.csv')""")
 
-    -- venezuelareportaorg
-    SELECT
-        nombre,
-        NULL,
-        NULL,
-        NULL,
-        NULLIF(ubicacion, ''),
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        NULLIF(foto_url, ''),
-        CASE TRIM(estado)
-            WHEN 'Se busca'   THEN 'missing'
-            WHEN 'Encontrado' THEN 'found'
-            ELSE 'missing'
-        END,
-        'venezuelareportaorg', id, url,
-        NULL, NULL, NULL
-    FROM read_csv_auto('{SCRAPERS}/venezuelareportaorg/personas.csv')
+    if not parts:
+        raise RuntimeError("No hay ningún CSV de scraper disponible — abortando ETL")
 
-    UNION ALL
+    skipped = 6 - len(parts)
+    if skipped:
+        print(f"  ⚠ {skipped} source(s) sin CSV — se omiten del ETL")
 
-    -- venezuelatebusca
-    SELECT
-        NULLIF(TRIM(first_name || ' ' || last_name), ''),
-        NULLIF(TRIM(CAST(national_id AS VARCHAR)), ''),
-        TRY_CAST(age AS SMALLINT),
-        CASE LOWER(TRIM(gender))
-            WHEN 'masculino' THEN 'male'
-            WHEN 'femenino'  THEN 'female'
-        END,
-        NULLIF(last_seen_location, ''),
-        NULL,
-        NULLIF(description, ''),
-        NULLIF(reporter_name, ''),
-        NULLIF(reporter_phone, ''),
-        NULLIF(reporter_email, ''),
-        NULL,
-        CASE LOWER(TRIM(status))
-            WHEN 'missing' THEN 'missing'
-            WHEN 'found'   THEN 'found'
-            ELSE 'missing'
-        END,
-        'venezuelatebusca', id, NULL,
-        NULLIF(found_notes, ''),
-        NULL,
-        NULLIF(hospital_name, '')
-    FROM read_csv_auto('{SCRAPERS}/venezuelatebusca/personas.csv')
-
-    UNION ALL
-
-    -- pacienteshospitales
-    SELECT
-        nombre,
-        NULL,
-        TRY_CAST(edad AS SMALLINT),
-        NULL,
-        NULL,
-        NULL,
-        NULLIF(notas, ''),
-        NULL,
-        NULL,
-        NULL,
-        NULL,
-        'missing',
-        'pacienteshospitales', id, NULL,
-        NULLIF(TRIM(reportado_por), ''),
-        NULL,
-        NULLIF(TRIM(CONCAT_WS(', ', NULLIF(hospital,''), NULLIF(ciudad,''))), '')
-    FROM read_csv_auto('{SCRAPERS}/pacienteshospitales/pacientes.csv')
-    """)
+    con.execute(f"CREATE OR REPLACE VIEW normalized AS {' UNION ALL '.join(parts)}")
 
 
 def dedup(con: duckdb.DuckDBPyConnection) -> list:
