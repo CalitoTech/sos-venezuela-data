@@ -83,6 +83,67 @@ psql -U sos_user -d sos_venezuela -f db/schema.sql
 
 ---
 
+## API pública
+
+La API REST permite reportar y consultar personas desaparecidas desde cualquier sistema externo.
+
+Base URL (producción): `https://sos-venezuela.vercel.app/api`  
+Base URL (local): `http://localhost:3000/api`
+
+### `GET /api/persons`
+
+Consulta registros con filtros opcionales.
+
+| Parámetro | Tipo | Descripción |
+|-----------|------|-------------|
+| `q` | string | Búsqueda por nombre o cédula |
+| `status` | `missing` \| `found` | Filtrar por estado |
+| `limit` | number | Máximo de resultados (default: 50, max: 200) |
+| `offset` | number | Paginación |
+
+```bash
+curl "https://sos-venezuela.vercel.app/api/persons?q=garcia&status=missing"
+```
+
+### `POST /api/persons`
+
+Registra una persona desaparecida. Si ya existe un registro con la misma cédula, lo actualiza.
+
+**Campos:**
+
+| Campo | Tipo | Requerido |
+|-------|------|-----------|
+| `full_name` | string | ✓ |
+| `cedula` | string | — (clave de deduplicación) |
+| `age` | number | — |
+| `gender` | `male` \| `female` | — |
+| `last_seen_location` | string | — |
+| `last_seen_date` | string (YYYY-MM-DD) | — |
+| `description` | string | — |
+| `photo_url` | string | — |
+| `contact_name` | string | — |
+| `contact_phone` | string | — |
+| `contact_email` | string | — |
+| `source_urls` | string[] | — (URLs donde aparece el registro) |
+| `reported_by_source` | string | — (nombre de tu sistema) |
+
+```bash
+curl -X POST "https://sos-venezuela.vercel.app/api/persons" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "full_name": "María García",
+    "cedula": "12345678",
+    "age": 34,
+    "last_seen_location": "Caracas, La California",
+    "last_seen_date": "2026-06-24",
+    "reported_by_source": "mi-sistema"
+  }'
+```
+
+Responde con el registro creado o actualizado (`201`).
+
+---
+
 ## Cómo contribuir
 
 Este proyecto necesita ayuda urgente. Cualquier contribución cuenta.

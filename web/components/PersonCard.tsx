@@ -13,7 +13,7 @@ export function PersonCard({ p, index }: { p: MissingPerson; index: number }) {
   return (
     <Link
       href={`/persona/${p.id}`}
-      style={{ animationDelay: `${index * 40}ms` }}
+      style={{ animationDelay: `${index * 40}ms`, height: "100%" }}
       className="animate-fade-in-up block"
     >
       <article
@@ -26,6 +26,7 @@ export function PersonCard({ p, index }: { p: MissingPerson; index: number }) {
           display: "flex",
           flexDirection: "column",
           gap: "0.6rem",
+          height: "100%",
           transition: "border-color 0.15s, background 0.15s",
           cursor: "pointer",
         }}

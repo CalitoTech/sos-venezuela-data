@@ -89,6 +89,7 @@ export default async function Home({
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
               gap: "1rem",
+              alignItems: "stretch",
             }}>
               {persons.map((p, i) => (
                 <PersonCard key={p.id} p={p} index={i} />
