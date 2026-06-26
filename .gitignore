@@ -10,3 +10,4 @@ data/processed/
 *.sqlite
 .DS_Store
 postgres_data/
+.vercel
